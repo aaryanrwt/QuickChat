@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "crates/quickchat_core",
+    "crates/quickchat_tui",
+    "crates/quickchat_net",
+    "crates/quickchat_cli",
+    "crates/quickchat_types"
+]
+resolver = "2"

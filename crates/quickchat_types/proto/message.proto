@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package quickchat;
+
+// The initial handshake message sent when a connection is established.
+// Used for mutual authentication.
+message Handshake {
+    // The sender's public Ed25519 identity key (32 bytes)
+    bytes public_key = 1;
+    // A cryptographic signature of a challenge or simply of the session metadata
+    // to prove ownership of the public key. For V1 we just sign the X25519 public key.
+    bytes signature = 2;
+    // The sender's human-readable name or alias
+    string display_name = 3;
+}
+
+// A chat message sent after the handshake is verified.
+message ChatMessage {
+    // A unique identifier for the message (UUID v4)
+    string id = 1;
+    // The content of the message
+    string content = 2;
+    // Unix timestamp of when the message was sent (milliseconds)
+    uint64 timestamp = 3;
+}
+
+message FileTransferOffer {
+    string id = 1;
+    string filename = 2;
+    uint64 size = 3;
+    string checksum = 4;
+}
+
+message FileChunk {
+    string id = 1;
+    uint64 chunk_index = 2;
+    bytes data = 3;
+}
+
+message Envelope {
+    oneof payload {
+        ChatMessage chat_message = 1;
+        FileTransferOffer file_offer = 2;
+        FileChunk file_chunk = 3;
+    }
+}
