@@ -1,7 +1,5 @@
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
-use quickchat_core::db::{
-    Connection, Contact, get_contacts, get_messages_for_contact,
-};
+use quickchat_core::db::{Connection, Contact, get_contacts, get_messages_for_contact};
 use ratatui::{Terminal, backend::Backend, widgets::ListState};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -94,58 +92,59 @@ impl App {
 
             if event::poll(Duration::from_millis(50))?
                 && let Event::Key(key) = event::read()?
-                    && key.kind == KeyEventKind::Press {
-                        match key.code {
-                            KeyCode::Esc => self.should_quit = true,
-                            KeyCode::Up => {
-                                if !self.contacts.is_empty() {
-                                    let i = match self.contact_list_state.selected() {
-                                        Some(i) => {
-                                            if i == 0 {
-                                                self.contacts.len() - 1
-                                            } else {
-                                                i - 1
-                                            }
-                                        }
-                                        None => 0,
-                                    };
-                                    self.contact_list_state.select(Some(i));
-                                    self.active_contact = Some(self.contacts[i].public_key.clone());
-                                    self.reload_messages();
+                && key.kind == KeyEventKind::Press
+            {
+                match key.code {
+                    KeyCode::Esc => self.should_quit = true,
+                    KeyCode::Up => {
+                        if !self.contacts.is_empty() {
+                            let i = match self.contact_list_state.selected() {
+                                Some(i) => {
+                                    if i == 0 {
+                                        self.contacts.len() - 1
+                                    } else {
+                                        i - 1
+                                    }
                                 }
-                            }
-                            KeyCode::Down => {
-                                if !self.contacts.is_empty() {
-                                    let i = match self.contact_list_state.selected() {
-                                        Some(i) => {
-                                            if i >= self.contacts.len() - 1 {
-                                                0
-                                            } else {
-                                                i + 1
-                                            }
-                                        }
-                                        None => 0,
-                                    };
-                                    self.contact_list_state.select(Some(i));
-                                    self.active_contact = Some(self.contacts[i].public_key.clone());
-                                    self.reload_messages();
-                                }
-                            }
-                            KeyCode::Enter => {
-                                let msg = self.input.value().to_string();
-                                if !msg.is_empty() {
-                                    self.messages.push(format!("You: {}", msg));
-                                    let _ = self.tx_outbound.send(msg);
-                                    self.input.reset();
-                                }
-                            }
-                            _ => {
-                                // Delegate to tui-input backend for handling character inputs
-                                use tui_input::backend::crossterm::EventHandler;
-                                self.input.handle_event(&Event::Key(key));
-                            }
+                                None => 0,
+                            };
+                            self.contact_list_state.select(Some(i));
+                            self.active_contact = Some(self.contacts[i].public_key.clone());
+                            self.reload_messages();
                         }
                     }
+                    KeyCode::Down => {
+                        if !self.contacts.is_empty() {
+                            let i = match self.contact_list_state.selected() {
+                                Some(i) => {
+                                    if i >= self.contacts.len() - 1 {
+                                        0
+                                    } else {
+                                        i + 1
+                                    }
+                                }
+                                None => 0,
+                            };
+                            self.contact_list_state.select(Some(i));
+                            self.active_contact = Some(self.contacts[i].public_key.clone());
+                            self.reload_messages();
+                        }
+                    }
+                    KeyCode::Enter => {
+                        let msg = self.input.value().to_string();
+                        if !msg.is_empty() {
+                            self.messages.push(format!("You: {}", msg));
+                            let _ = self.tx_outbound.send(msg);
+                            self.input.reset();
+                        }
+                    }
+                    _ => {
+                        // Delegate to tui-input backend for handling character inputs
+                        use tui_input::backend::crossterm::EventHandler;
+                        self.input.handle_event(&Event::Key(key));
+                    }
+                }
+            }
         }
         Ok(())
     }

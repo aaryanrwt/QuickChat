@@ -368,19 +368,19 @@ async fn main() -> Result<()> {
             }
         }
         Commands::Share { pointer } => {
-            if let Some((file, line)) = pointer.split_once(':') {
-                if let Ok(line_num) = line.parse::<usize>() {
-                    let content = std::fs::read_to_string(file)?;
-                    let lines: Vec<&str> = content.lines().collect();
-                    if line_num > 0 && line_num <= lines.len() {
-                        let snippet = lines[line_num - 1];
-                        let formatted =
-                            format!("**Shared Pointer** `{}`\n```\n{}\n```", pointer, snippet);
+            if let Some((file, line)) = pointer.split_once(':')
+                && let Ok(line_num) = line.parse::<usize>()
+            {
+                let content = std::fs::read_to_string(file)?;
+                let lines: Vec<&str> = content.lines().collect();
+                if line_num > 0 && line_num <= lines.len() {
+                    let snippet = lines[line_num - 1];
+                    let formatted =
+                        format!("**Shared Pointer** `{}`\n```\n{}\n```", pointer, snippet);
 
-                        let socket = std::net::UdpSocket::bind("0.0.0.0:0")?;
-                        socket.send_to(formatted.as_bytes(), "127.0.0.1:18080")?;
-                        println!("Shared pointer {} to running daemon.", pointer);
-                    }
+                    let socket = std::net::UdpSocket::bind("0.0.0.0:0")?;
+                    socket.send_to(formatted.as_bytes(), "127.0.0.1:18080")?;
+                    println!("Shared pointer {} to running daemon.", pointer);
                 }
             }
         }
@@ -461,7 +461,7 @@ async fn handle_connection(
                     let mut framed = FramedRead::new(recv, LengthDelimitedCodec::new());
 
                     while let Some(Ok(bytes_mut)) = framed.next().await {
-                        let b = bytes::Bytes::from(bytes_mut.freeze());
+                        let b = bytes_mut.freeze();
                         if let Ok(envelope) = Envelope::decode(b) {
                             match envelope.payload {
                                 Some(Payload::ChatMessage(chat)) => {
