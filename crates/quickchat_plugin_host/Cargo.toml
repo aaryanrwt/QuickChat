@@ -5,7 +5,7 @@ edition = "2021"
 description = "WASM Plugin Host for QuickChat"
 
 [dependencies]
-wasmtime = "14.0.4"
-wasmtime-wasi = "14.0.4"
+wasmtime = "25.0.0"
+wasmtime-wasi = "25.0.0"
 anyhow = "1.0"
 quickchat_types = { path = "../quickchat_types" }

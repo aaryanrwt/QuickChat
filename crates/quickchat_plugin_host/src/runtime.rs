@@ -1,9 +1,10 @@
 use anyhow::Result;
 use wasmtime::{Config, Engine, Linker, Module, Store};
-use wasmtime_wasi::{WasiCtx, WasiCtxBuilder};
+use wasmtime_wasi::preview1::WasiP1Ctx;
+use wasmtime_wasi::WasiCtxBuilder;
 
 pub struct PluginContext {
-    wasi_ctx: WasiCtx,
+    wasi_ctx: WasiP1Ctx,
 }
 
 pub struct PluginManager {
@@ -18,7 +19,7 @@ impl PluginManager {
         let engine = Engine::new(&config)?;
 
         let mut linker = Linker::new(&engine);
-        wasmtime_wasi::add_to_linker(&mut linker, |ctx: &mut PluginContext| &mut ctx.wasi_ctx)?;
+        wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |ctx: &mut PluginContext| &mut ctx.wasi_ctx)?;
 
         // Link host functions
         linker.func_wrap(
@@ -36,7 +37,7 @@ impl PluginManager {
     pub fn load_plugin(&self, wasm_bytes: &[u8]) -> Result<Store<PluginContext>> {
         let module = Module::new(&self.engine, wasm_bytes)?;
 
-        let wasi = WasiCtxBuilder::new().inherit_stdio().build();
+        let wasi = WasiCtxBuilder::new().inherit_stdio().build_p1();
         let mut store = Store::new(&self.engine, PluginContext { wasi_ctx: wasi });
 
         let _instance = self.linker.instantiate(&mut store, &module)?;
