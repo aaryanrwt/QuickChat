@@ -1,6 +1,6 @@
 use anyhow::Result;
 use wasmtime::{Config, Engine, Linker, Module, Store};
-use wasmtime_wasi::preview1::WasiP1Ctx;
+use wasmtime_wasi::p1::WasiP1Ctx;
 use wasmtime_wasi::WasiCtxBuilder;
 
 pub struct PluginContext {
@@ -19,7 +19,9 @@ impl PluginManager {
         let engine = Engine::new(&config)?;
 
         let mut linker = Linker::new(&engine);
-        wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |ctx: &mut PluginContext| &mut ctx.wasi_ctx)?;
+        wasmtime_wasi::p1::add_to_linker_sync(&mut linker, |ctx: &mut PluginContext| {
+            &mut ctx.wasi_ctx
+        })?;
 
         // Link host functions
         linker.func_wrap(
