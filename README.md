@@ -29,13 +29,6 @@ QuickChat enables developers to communicate securely over local networks without
 
 ## 📥 Installation
 
-### Using Cargo (Recommended)
-If you have Rust installed, you can build and install QuickChat directly from crates.io (coming soon) or from source:
-
-```bash
-cargo install quickchat_cli
-```
-
 ### Build from Source
 1. Clone the repository:
    ```bash
@@ -47,9 +40,10 @@ cargo install quickchat_cli
    cargo build --release
    ```
 3. The executable will be available at `./target/release/quickchat_cli`.
-
-### Pre-built Binaries (Linux, macOS, Windows)
-*Pre-built binaries will be provided on the GitHub Releases page in the upcoming v1.0 release.*
+4. Run the executable:
+   ```bash
+   ./target/release/quickchat_cli
+   ```
 
 ---
 
@@ -155,6 +149,7 @@ QuickChat is built on modern cryptographic standards.
 
 QuickChat is actively evolving. Our upcoming priorities focus on improving the core developer experience:
 
+- **Crates.io Publishing**: Publish all QuickChat crates to crates.io for easier installation.
 - **Better File Transfer**: Optimized chunking and streaming for large binary files.
 - **Themes**: Full TOML-based dynamic theming support for terminal colors.
 - **Plugin Ecosystem**: A public registry for discovering and installing community-built WASM plugins.
@@ -182,9 +177,7 @@ Please read `CONTRIBUTING.md` for more detailed information.
 
 QuickChat is an independent, open-source project. Building a secure, cross-platform terminal ecosystem takes time and dedication. 
 
-If this tool improves your workflow or saves you time, consider supporting its continued development. Your contributions help maintain the infrastructure, fund CI runners, and support the creation of core plugins. 
-
-*(GitHub Sponsors link coming soon)*
+If this tool improves your workflow or saves you time, consider supporting its continued development. Your contributions help maintain the infrastructure, fund CI runners, and support the creation of core plugins.
 
 ---
 

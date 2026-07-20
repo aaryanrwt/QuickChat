@@ -3119,7 +3119,7 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "ping_plugin"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "quickchat_plugin_sdk",
  "quickchat_types",
@@ -3355,7 +3355,7 @@ dependencies = [
 
 [[package]]
 name = "quickchat_cli"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "anyhow",
  "bytes",
@@ -3383,7 +3383,7 @@ dependencies = [
 
 [[package]]
 name = "quickchat_core"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "anyhow",
  "bytes",
@@ -3405,7 +3405,7 @@ dependencies = [
 
 [[package]]
 name = "quickchat_net"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "anyhow",
  "magic-wormhole",
@@ -3423,7 +3423,7 @@ dependencies = [
 
 [[package]]
 name = "quickchat_plugin_host"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "anyhow",
  "quickchat_types",
@@ -3433,14 +3433,14 @@ dependencies = [
 
 [[package]]
 name = "quickchat_plugin_sdk"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "quickchat_types",
 ]
 
 [[package]]
 name = "quickchat_tui"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "crossterm",
  "quickchat_core",
@@ -3453,7 +3453,7 @@ dependencies = [
 
 [[package]]
 name = "quickchat_types"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "bytes",
  "prost",

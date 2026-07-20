@@ -1,14 +1,14 @@
 [package]
 name = "quickchat_net"
-version = "0.1.0"
+version = "2.0.0"
 edition = "2024"
 
 [dependencies]
 anyhow = "1.0.103"
 magic-wormhole = "0.8.1"
 mdns-sd = "0.20.1"
-quickchat_core = { version = "0.1.0", path = "../quickchat_core" }
-quickchat_types = { version = "0.1.0", path = "../quickchat_types" }
+quickchat_core = { version = "2.0.0", path = "../quickchat_core" }
+quickchat_types = { version = "2.0.0", path = "../quickchat_types" }
 quinn = "0.11.11"
 rcgen = "0.14.8"
 rustls = "0.23.42"

@@ -17,19 +17,35 @@ extern "C" {
     ) -> i32;
 }
 
+/// # Safety
+/// This is a mock implementation for non-wasm architectures and is intrinsically safe.
 #[cfg(not(target_arch = "wasm32"))]
 #[no_mangle]
-pub extern "C" fn host_send_message(_a: *const u8, _b: usize, _c: *const u8, _d: usize) -> i32 {
+pub unsafe extern "C" fn host_send_message(
+    _a: *const u8,
+    _b: usize,
+    _c: *const u8,
+    _d: usize,
+) -> i32 {
     0
 }
 
+/// # Safety
+/// This is a mock implementation for non-wasm architectures and is intrinsically safe.
 #[cfg(not(target_arch = "wasm32"))]
 #[no_mangle]
-pub extern "C" fn host_log(_level: i32, _msg: *const u8, _len: usize) {}
+pub unsafe extern "C" fn host_log(_level: i32, _msg: *const u8, _len: usize) {}
 
+/// # Safety
+/// This is a mock implementation for non-wasm architectures and is intrinsically safe.
 #[cfg(not(target_arch = "wasm32"))]
 #[no_mangle]
-pub extern "C" fn host_register_command(_a: *const u8, _b: usize, _c: *const u8, _d: usize) -> i32 {
+pub unsafe extern "C" fn host_register_command(
+    _a: *const u8,
+    _b: usize,
+    _c: *const u8,
+    _d: usize,
+) -> i32 {
     0
 }
 

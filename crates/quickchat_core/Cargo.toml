@@ -1,6 +1,6 @@
 [package]
 name = "quickchat_core"
-version = "0.1.0"
+version = "2.0.0"
 edition = "2024"
 
 [dependencies]
@@ -10,7 +10,7 @@ ed25519-dalek = { version = "3.0.0", features = ["rand_core"] }
 futures = "0.3.32"
 getrandom = "0.4.3"
 prost = "0.14.4"
-quickchat_types = { version = "0.1.0", path = "../quickchat_types" }
+quickchat_types = { version = "2.0.0", path = "../quickchat_types" }
 quinn = "0.11.11"
 rand = "0.8"
 rand_core = { version = "0.6", features = ["getrandom"] }

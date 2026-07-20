@@ -1,6 +1,6 @@
 [package]
 name = "quickchat_cli"
-version = "0.1.0"
+version = "2.0.0"
 edition = "2024"
 
 [dependencies]
@@ -15,10 +15,10 @@ local-ip-address = "0.6.13"
 magic-wormhole = "0.8.1"
 mdns-sd = "0.20.1"
 prost = "0.14.4"
-quickchat_core = { version = "0.1.0", path = "../quickchat_core" }
-quickchat_net = { version = "0.1.0", path = "../quickchat_net" }
-quickchat_tui = { version = "0.1.0", path = "../quickchat_tui" }
-quickchat_types = { version = "0.1.0", path = "../quickchat_types" }
+quickchat_core = { version = "2.0.0", path = "../quickchat_core" }
+quickchat_net = { version = "2.0.0", path = "../quickchat_net" }
+quickchat_tui = { version = "2.0.0", path = "../quickchat_tui" }
+quickchat_types = { version = "2.0.0", path = "../quickchat_types" }
 quinn = "0.11.11"
 ratatui = "0.30.2"
 tokio = { version = "1.52.4", features = ["full"] }
