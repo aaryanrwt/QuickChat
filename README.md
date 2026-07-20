@@ -5,7 +5,7 @@
   </p>
 
   <p>
-    <a href="https://github.com/aaryanrwt/QuickChat/actions"><img src="https://img.shields.io/github/actions/workflow/status/aaryanrwt/QuickChat/ci.yml?branch=main" alt="Build Status"></a>
+    [![CI](https://github.com/aaryanrwt/QuickChat/actions/workflows/ci.yml/badge.svg)](https://github.com/aaryanrwt/QuickChat/actions/workflows/ci.yml)
     <a href="https://github.com/aaryanrwt/QuickChat/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT%20%2F%20Apache--2.0-blue.svg" alt="License"></a>
     <a href="https://crates.io/crates/quickchat_cli"><img src="https://img.shields.io/crates/v/quickchat_cli.svg" alt="Crates.io"></a>
   </p>
