@@ -1,0 +1,46 @@
+use anyhow::Result;
+use wasmtime::{Config, Engine, Linker, Module, Store};
+use wasmtime_wasi::{WasiCtx, WasiCtxBuilder};
+
+pub struct PluginContext {
+    wasi_ctx: WasiCtx,
+}
+
+pub struct PluginManager {
+    engine: Engine,
+    linker: Linker<PluginContext>,
+}
+
+impl PluginManager {
+    pub fn new() -> Result<Self> {
+        let mut config = Config::new();
+        config.wasm_backtrace_details(wasmtime::WasmBacktraceDetails::Enable);
+        let engine = Engine::new(&config)?;
+
+        let mut linker = Linker::new(&engine);
+        wasmtime_wasi::add_to_linker(&mut linker, |ctx: &mut PluginContext| &mut ctx.wasi_ctx)?;
+
+        // Link host functions
+        linker.func_wrap(
+            "quickchat_host",
+            "host_log",
+            |mut _caller: wasmtime::Caller<'_, PluginContext>, level: i32, ptr: i32, len: i32| {
+                // Implementation to read from WASM memory and log
+                println!("Plugin log level {}: pointer {} len {}", level, ptr, len);
+            },
+        )?;
+
+        Ok(Self { engine, linker })
+    }
+
+    pub fn load_plugin(&self, wasm_bytes: &[u8]) -> Result<Store<PluginContext>> {
+        let module = Module::new(&self.engine, wasm_bytes)?;
+
+        let wasi = WasiCtxBuilder::new().inherit_stdio().build();
+        let mut store = Store::new(&self.engine, PluginContext { wasi_ctx: wasi });
+
+        let _instance = self.linker.instantiate(&mut store, &module)?;
+
+        Ok(store)
+    }
+}

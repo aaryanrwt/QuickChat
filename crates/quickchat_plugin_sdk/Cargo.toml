@@ -1,0 +1,9 @@
+[package]
+name = "quickchat_plugin_sdk"
+version = "0.1.0"
+edition = "2021"
+description = "SDK for building WebAssembly plugins for QuickChat"
+authors = ["QuickChat Contributors"]
+
+[dependencies]
+quickchat_types = { path = "../quickchat_types" }

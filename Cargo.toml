@@ -4,6 +4,9 @@ members = [
     "crates/quickchat_tui",
     "crates/quickchat_net",
     "crates/quickchat_cli",
-    "crates/quickchat_types"
+    "crates/quickchat_types",
+    "crates/quickchat_plugin_sdk",
+    "crates/quickchat_plugin_host",
+    "crates/plugins/ping"
 ]
 resolver = "2"
