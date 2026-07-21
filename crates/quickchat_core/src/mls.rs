@@ -42,3 +42,17 @@ impl GroupCryptoEngine {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_mls_encryption_roundtrip() {
+        let mut engine = GroupCryptoEngine::new(b"test_group").unwrap();
+        let plaintext = b"Hello V3";
+        let ciphertext = engine.encrypt_message(plaintext).unwrap();
+        let decrypted = engine.decrypt_message(&ciphertext).unwrap();
+        assert_eq!(plaintext.to_vec(), decrypted);
+    }
+}

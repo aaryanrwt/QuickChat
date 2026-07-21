@@ -8,6 +8,13 @@ use tui_input::Input;
 pub enum AppEvent {
     Message(String),
     System(String),
+    PluginOutput(String),
+}
+
+pub enum ActivePane {
+    Chat,
+    Contacts,
+    Plugins,
 }
 
 pub struct App {
@@ -21,6 +28,10 @@ pub struct App {
     pub contacts: Vec<Contact>,
     pub active_contact: Option<Vec<u8>>,
     pub contact_list_state: ListState,
+    
+    // Multi-pane state for V3
+    pub active_pane: ActivePane,
+    pub plugin_outputs: Vec<String>,
 }
 
 impl App {
@@ -52,6 +63,8 @@ impl App {
             contacts,
             active_contact: active,
             contact_list_state: state,
+            active_pane: ActivePane::Chat,
+            plugin_outputs: Vec::new(),
         };
         app.reload_messages();
         app
@@ -85,6 +98,7 @@ impl App {
                 match event {
                     AppEvent::Message(m) => self.messages.push(m),
                     AppEvent::System(s) => self.messages.push(format!("[SYSTEM] {}", s)),
+                    AppEvent::PluginOutput(p) => self.plugin_outputs.push(p),
                 }
             }
 

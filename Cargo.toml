@@ -8,5 +8,5 @@ members = [
     "crates/quickchat_plugin_sdk",
     "crates/quickchat_plugin_host",
     "crates/plugins/ping"
-, "crates/quickchat_dht", "crates/quickchat_relay"]
+, "crates/quickchat_dht", "crates/quickchat_relay", "crates/plugins/live_code"]
 resolver = "2"

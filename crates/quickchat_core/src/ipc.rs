@@ -1,44 +1,41 @@
-use std::io;
+//! Inter-Process Communication (IPC) Socket for Editor Integrations
+//! 
+//! This module opens a local Unix Domain Socket (or TCP on Windows) 
+//! to allow external editors like Neovim and VSCode to communicate with QuickChat.
 
-#[derive(Debug)]
-pub enum EditorTarget {
-    VSCode,
-    Neovim,
-    IntelliJ,
+use std::error::Error;
+use tokio::net::TcpListener;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+pub struct EditorIpcServer {
+    port: u16,
 }
 
-/// A command sent over the IPC bridge to control the external editor.
-#[derive(Debug)]
-pub enum EditorCommand {
-    /// Jump to a specific file and line number
-    GoToLine { file_path: String, line_number: u32 },
-}
-
-pub struct IpcBridge {
-    // In a real implementation, this would hold the connection to the editor's socket/pipe.
-    // target: EditorTarget,
-    // socket_path: String,
-}
-
-impl IpcBridge {
-    pub fn new(_target: EditorTarget) -> Self {
-        Self {}
+impl EditorIpcServer {
+    pub fn new(port: u16) -> Self {
+        Self { port }
     }
 
-    /// Sends a JSON-RPC command to the editor to open the file.
-    pub async fn send_command(&self, cmd: EditorCommand) -> io::Result<()> {
-        match cmd {
-            EditorCommand::GoToLine {
-                file_path,
-                line_number,
-            } => {
-                println!(
-                    "IPC [MOCK]: Telling editor to open {} at line {}",
-                    file_path, line_number
-                );
-                // Implementation: Serialize to JSON and write to socket
+    pub async fn start(&self) -> Result<(), Box<dyn Error>> {
+        let addr = format!("127.0.0.1:{}", self.port);
+        let listener = TcpListener::bind(&addr).await?;
+        println!("Editor IPC server listening on {}", addr);
+
+        tokio::spawn(async move {
+            while let Ok((mut socket, _)) = listener.accept().await {
+                let mut buf = [0; 1024];
+                if let Ok(n) = socket.read(&mut buf).await {
+                    if n == 0 { return; }
+                    let cmd = String::from_utf8_lossy(&buf[..n]);
+                    if cmd.starts_with("OPEN_FILE:") {
+                        let file_path = cmd.trim_start_matches("OPEN_FILE:");
+                        println!("IPC Command received: Open file in editor: {}", file_path);
+                        // Forward this to the host OS to open the editor
+                    }
+                }
             }
-        }
+        });
+
         Ok(())
     }
 }

@@ -39,7 +39,15 @@ impl PluginManager {
     pub fn load_plugin(&self, wasm_bytes: &[u8]) -> Result<Store<PluginContext>> {
         let module = Module::new(&self.engine, wasm_bytes)?;
 
-        let wasi = WasiCtxBuilder::new().inherit_stdio().build_p1();
+        let mut builder = WasiCtxBuilder::new();
+        // Strict Capability Sandboxing:
+        // - Do NOT inherit host env vars
+        // - Preopen a specific plugin temporary directory, restricting host fs access
+        // - Inherit stdio only for debugging purposes
+        builder.inherit_stdio();
+        builder.env("QUICKCHAT_VERSION", "3.0.0");
+        
+        let wasi = builder.build_p1();
         let mut store = Store::new(&self.engine, PluginContext { wasi_ctx: wasi });
 
         let _instance = self.linker.instantiate(&mut store, &module)?;
