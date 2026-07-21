@@ -1,8 +1,13 @@
 //! Database Module for persistent message history
-//! 
+//!
 //! Uses `rusqlite` to store E2EE decrypted messages locally.
 
 use rusqlite::{Connection, Result};
+
+pub struct Contact {
+    pub public_key: Vec<u8>,
+    pub alias: String,
+}
 
 pub struct ChatDatabase {
     conn: Connection,
@@ -11,7 +16,7 @@ pub struct ChatDatabase {
 impl ChatDatabase {
     pub fn new(db_path: &str) -> Result<Self> {
         let conn = Connection::open(db_path)?;
-        
+
         // Initialize schema for persistent group chats (V3)
         conn.execute(
             "CREATE TABLE IF NOT EXISTS messages (
@@ -36,7 +41,9 @@ impl ChatDatabase {
     }
 
     pub fn get_messages(&self, group_id: &str) -> Result<Vec<String>> {
-        let mut stmt = self.conn.prepare("SELECT sender_id, content FROM messages WHERE group_id = ?1 ORDER BY timestamp ASC")?;
+        let mut stmt = self.conn.prepare(
+            "SELECT sender_id, content FROM messages WHERE group_id = ?1 ORDER BY timestamp ASC",
+        )?;
         let msg_iter = stmt.query_map([group_id], |row| {
             let sender: String = row.get(0)?;
             let content: String = row.get(1)?;

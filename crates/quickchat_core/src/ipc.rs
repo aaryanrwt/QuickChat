@@ -1,11 +1,11 @@
 //! Inter-Process Communication (IPC) Socket for Editor Integrations
-//! 
-//! This module opens a local Unix Domain Socket (or TCP on Windows) 
+//!
+//! This module opens a local Unix Domain Socket (or TCP on Windows)
 //! to allow external editors like Neovim and VSCode to communicate with QuickChat.
 
 use std::error::Error;
+use tokio::io::AsyncReadExt;
 use tokio::net::TcpListener;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 pub struct EditorIpcServer {
     port: u16,
@@ -25,12 +25,22 @@ impl EditorIpcServer {
             while let Ok((mut socket, _)) = listener.accept().await {
                 let mut buf = [0; 1024];
                 if let Ok(n) = socket.read(&mut buf).await {
-                    if n == 0 { return; }
+                    if n == 0 {
+                        return;
+                    }
                     let cmd = String::from_utf8_lossy(&buf[..n]);
                     if cmd.starts_with("OPEN_FILE:") {
-                        let file_path = cmd.trim_start_matches("OPEN_FILE:");
+                        let file_path = cmd.trim_start_matches("OPEN_FILE:").trim();
                         println!("IPC Command received: Open file in editor: {}", file_path);
-                        // Forward this to the host OS to open the editor
+
+                        // Execute the host OS command to open the editor
+                        #[cfg(target_os = "windows")]
+                        let _ = std::process::Command::new("cmd")
+                            .args(["/C", "code", file_path])
+                            .spawn();
+
+                        #[cfg(not(target_os = "windows"))]
+                        let _ = std::process::Command::new("code").arg(file_path).spawn();
                     }
                 }
             }

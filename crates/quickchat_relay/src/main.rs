@@ -1,6 +1,6 @@
-use std::error::Error;
 use quickchat_dht::DhtNode;
-use tokio::time::{sleep, Duration};
+use std::error::Error;
+use tokio::time::{Duration, sleep};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

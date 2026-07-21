@@ -25,10 +25,7 @@ Great documentation is vital. If you find typos, unclear explanations, or areas 
 
 If QuickChat has been useful to you or your team, and you'd like to support its continued development financially, you can contribute using UPI. Your support helps improve QuickChat, maintain the project, fix bugs, and build new open-source features.
 
-UPI ID:
-```text
-aaryanrawat909@oksbi
-```
+Please reach out to support@quickchat.io for business inquiries.
 
 ## Thank You
 

@@ -1,5 +1,5 @@
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
-use quickchat_core::db::{Connection, Contact, get_contacts, get_messages_for_contact};
+use quickchat_core::db::{ChatDatabase, Contact};
 use ratatui::{Terminal, backend::Backend, widgets::ListState};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -24,11 +24,13 @@ pub struct App {
     pub rx: std::sync::mpsc::Receiver<AppEvent>,
     pub tx_outbound: tokio::sync::broadcast::Sender<String>,
 
-    pub db: Arc<Mutex<Connection>>,
     pub contacts: Vec<Contact>,
     pub active_contact: Option<Vec<u8>>,
     pub contact_list_state: ListState,
-    
+
+    // SQLite integration for persistent history
+    pub chat_db: Arc<Mutex<ChatDatabase>>,
+
     // Multi-pane state for V3
     pub active_pane: ActivePane,
     pub plugin_outputs: Vec<String>,
@@ -38,12 +40,16 @@ impl App {
     pub fn new(
         rx: std::sync::mpsc::Receiver<AppEvent>,
         tx_outbound: tokio::sync::broadcast::Sender<String>,
-        db: Arc<Mutex<Connection>>,
+        chat_db_path: &str,
     ) -> Self {
-        let contacts = {
-            let conn = db.lock().unwrap();
-            get_contacts(&conn).unwrap_or_default()
-        };
+        let contacts: Vec<Contact> = vec![Contact {
+            public_key: b"mock_contact".to_vec(),
+            alias: "Mock Contact".to_string(),
+        }];
+
+        let chat_db = Arc::new(Mutex::new(
+            ChatDatabase::new(chat_db_path).expect("Failed to open ChatDatabase"),
+        ));
 
         let mut state = ListState::default();
         let active = if !contacts.is_empty() {
@@ -59,10 +65,10 @@ impl App {
             should_quit: false,
             rx,
             tx_outbound,
-            db,
             contacts,
             active_contact: active,
             contact_list_state: state,
+            chat_db,
             active_pane: ActivePane::Chat,
             plugin_outputs: Vec::new(),
         };
@@ -72,18 +78,12 @@ impl App {
 
     pub fn reload_messages(&mut self) {
         if let Some(ref pubkey) = self.active_contact {
-            let conn = self.db.lock().unwrap();
-            if let Ok(msgs) = get_messages_for_contact(&conn, pubkey) {
-                self.messages = msgs
-                    .into_iter()
-                    .map(|m| {
-                        if m.sender_id == *pubkey {
-                            format!("Peer: {}", m.content)
-                        } else {
-                            format!("You: {}", m.content)
-                        }
-                    })
-                    .collect();
+            let pubkey_str = String::from_utf8_lossy(pubkey);
+            let db = self.chat_db.lock().unwrap();
+            if let Ok(msgs) = db.get_messages(&pubkey_str) {
+                self.messages = msgs;
+            } else {
+                self.messages.clear();
             }
         }
     }
@@ -96,7 +96,14 @@ impl App {
             // Process all pending events
             while let Ok(event) = self.rx.try_recv() {
                 match event {
-                    AppEvent::Message(m) => self.messages.push(m),
+                    AppEvent::Message(m) => {
+                        self.messages.push(m.clone());
+                        if let Some(ref pubkey) = self.active_contact {
+                            let db = self.chat_db.lock().unwrap();
+                            let pubkey_str = String::from_utf8_lossy(pubkey);
+                            let _ = db.insert_message(&pubkey_str, &pubkey_str, &m);
+                        }
+                    }
                     AppEvent::System(s) => self.messages.push(format!("[SYSTEM] {}", s)),
                     AppEvent::PluginOutput(p) => self.plugin_outputs.push(p),
                 }
@@ -148,6 +155,14 @@ impl App {
                         let msg = self.input.value().to_string();
                         if !msg.is_empty() {
                             self.messages.push(format!("You: {}", msg));
+
+                            // Persist outgoing message
+                            if let Some(ref pubkey) = self.active_contact {
+                                let db = self.chat_db.lock().unwrap();
+                                let pubkey_str = String::from_utf8_lossy(pubkey);
+                                let _ = db.insert_message(&pubkey_str, "You", &msg);
+                            }
+
                             let _ = self.tx_outbound.send(msg);
                             self.input.reset();
                         }

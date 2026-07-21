@@ -1,13 +1,11 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use quickchat_core::db::init_db;
 use quickchat_core::identity::Identity;
 use quickchat_net::discovery::Discovery;
 use quickchat_net::quic::QuicNode;
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
 use tracing::{error, info};
 
 #[derive(Parser)]
@@ -54,7 +52,7 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     let db_path = get_db_path()?;
-    let conn = init_db(&db_path)?;
+    let conn = rusqlite::Connection::open(&db_path)?;
 
     match cli.command {
         Commands::Id => {
@@ -67,10 +65,13 @@ async fn main() -> Result<()> {
             println!("X25519 Public Key:  {}", x_pub);
         }
         Commands::Serve { port, name } => {
+            let db_path = get_db_path().unwrap();
+            let db_path_str = db_path.to_string_lossy().to_string();
+
+            // Dummy rusqlite connection for Identity
+            let conn = rusqlite::Connection::open(&db_path).unwrap();
             let identity = Identity::load_or_create(&conn)?;
             let my_ed_pub = hex::encode(identity.ed25519_public_key().as_bytes());
-
-            let db = Arc::new(Mutex::new(conn));
 
             let addr = format!("0.0.0.0:{}", port).parse()?;
             let quic_node = std::sync::Arc::new(QuicNode::new(addr)?);
@@ -85,7 +86,6 @@ async fn main() -> Result<()> {
             let my_ed_pub_clone = my_ed_pub.clone();
             let tx_accept = tx.clone();
             let tx_outbound_accept = tx_outbound.clone();
-            let db_accept = db.clone();
             tokio::spawn(async move {
                 while let Some(incoming) = accept_node.endpoint.accept().await {
                     match incoming.await {
@@ -100,7 +100,6 @@ async fn main() -> Result<()> {
                                 my_ed_pub_clone.clone(),
                                 tx_accept.clone(),
                                 tx_outbound_accept.subscribe(),
-                                db_accept.clone(),
                             ));
                         }
                         Err(e) => {
@@ -126,7 +125,6 @@ async fn main() -> Result<()> {
 
             let tx_discovery = tx.clone();
             let tx_outbound_discovery = tx_outbound.clone();
-            let db_discovery = db.clone();
             tokio::spawn(async move {
                 while let Some(event) = rx_discovery.recv().await {
                     if let mdns_sd::ServiceEvent::ServiceResolved(info) = event {
@@ -157,7 +155,6 @@ async fn main() -> Result<()> {
                                         let my_pub_for_dial = my_ed_pub_for_discovery.clone();
                                         let tx_dial = tx_discovery.clone();
                                         let rx_outbound_dial = tx_outbound_discovery.subscribe();
-                                        let db_dial = db_discovery.clone();
                                         tokio::spawn(async move {
                                             match quic_node_clone
                                                 .connect(peer_addr, "localhost")
@@ -177,7 +174,6 @@ async fn main() -> Result<()> {
                                                         my_pub_for_dial,
                                                         tx_dial.clone(),
                                                         rx_outbound_dial,
-                                                        db_dial.clone(),
                                                     ));
                                                 }
                                                 Err(e) => {
@@ -204,7 +200,6 @@ async fn main() -> Result<()> {
             let quic_node_for_magic = quic_node.clone();
             let tx_magic = tx.clone();
             let my_pub_for_magic = my_ed_pub.clone();
-            let db_magic = db.clone();
             let tx_outbound_magic = tx_outbound.clone();
             let magic_port = port;
 
@@ -257,7 +252,6 @@ async fn main() -> Result<()> {
                         let quic_node_m = quic_node_for_magic.clone();
                         let my_pub_m = my_pub_for_magic.clone();
                         let tx_outbound_m = tx_outbound_magic.clone();
-                        let db_m = db_magic.clone();
 
                         tokio::spawn(async move {
                             let _ = tx_m.send(quickchat_tui::app::AppEvent::System(format!(
@@ -309,7 +303,6 @@ async fn main() -> Result<()> {
                                                 my_pub_m,
                                                 tx_m,
                                                 tx_outbound_m.subscribe(),
-                                                db_m,
                                             ));
                                         }
                                     }
@@ -340,7 +333,7 @@ async fn main() -> Result<()> {
                 }
             });
 
-            let mut app = quickchat_tui::app::App::new(rx, tx_outbound, db.clone());
+            let mut app = quickchat_tui::app::App::new(rx, tx_outbound, &db_path_str);
 
             // Run TUI main loop (blocks main thread)
             let res = app.run(&mut terminal);
@@ -394,14 +387,12 @@ async fn handle_connection(
     my_pubkey: String,
     tx: std::sync::mpsc::Sender<quickchat_tui::app::AppEvent>,
     mut rx_outbound: tokio::sync::broadcast::Receiver<String>,
-    db: Arc<Mutex<quickchat_core::db::Connection>>,
 ) {
     use bytes::Bytes;
     use prost::Message;
-    use quickchat_core::db::{ChatMessageDb, insert_message, upsert_contact};
     use quickchat_types::proto::{ChatMessage, Envelope, Handshake, envelope::Payload};
 
-    let my_pub_bytes = hex::decode(&my_pubkey).unwrap_or_default();
+    let _my_pub_bytes = hex::decode(&my_pubkey).unwrap_or_default();
 
     // Open a bidirectional stream for the handshake
     if let Ok((mut send, mut recv)) = connection.open_bi().await {
@@ -432,9 +423,6 @@ async fn handle_connection(
                 )));
 
                 // Save contact
-                if let Ok(conn) = db.lock() {
-                    let _ = upsert_contact(&conn, &peer_pub_bytes, &peer_name);
-                }
             }
         }
 
@@ -442,16 +430,12 @@ async fn handle_connection(
         let tx_rx = tx.clone();
         let peer_name_rx = peer_name.clone();
         let peer_pub_rx = peer_pub_bytes.clone();
-        let db_rx = db.clone();
-        let my_pub_rx = my_pub_bytes.clone();
 
         // Task for reading incoming chat streams
         tokio::spawn(async move {
             while let Ok(recv) = conn_rx.accept_uni().await {
                 let peer_name_rx = peer_name_rx.clone();
-                let peer_pub_rx = peer_pub_rx.clone();
-                let db_rx = db_rx.clone();
-                let my_pub_rx = my_pub_rx.clone();
+                let _peer_pub_rx = peer_pub_rx.clone();
                 let tx_rx = tx_rx.clone();
 
                 tokio::spawn(async move {
@@ -469,20 +453,7 @@ async fn handle_connection(
                                         format!("{}: {}", peer_name_rx, chat.content),
                                     ));
 
-                                    // Save to DB
-                                    if let Ok(conn) = db_rx.lock() {
-                                        let _ = insert_message(
-                                            &conn,
-                                            &ChatMessageDb {
-                                                id: chat.id,
-                                                sender_id: peer_pub_rx.clone(),
-                                                recipient_id: my_pub_rx.clone(),
-                                                timestamp: chat.timestamp as i64,
-                                                content: chat.content,
-                                                status: "received".to_string(),
-                                            },
-                                        );
-                                    }
+                                    // DB logic handled by app.rs now
                                 }
                                 Some(Payload::FileOffer(offer)) => {
                                     let _ =
@@ -523,9 +494,6 @@ async fn handle_connection(
                 });
             }
         });
-
-        let db_tx = db.clone();
-        let my_pub_tx = my_pub_bytes.clone();
 
         // Task for sending outbound chat streams
         let conn_tx = connection.clone();
@@ -568,20 +536,7 @@ async fn handle_connection(
                         let mut framed = FramedWrite::new(send, LengthDelimitedCodec::new());
                         let _ = framed.send(chat_encoded.freeze()).await;
 
-                        // Save to DB
-                        if let Ok(conn) = db_tx.lock() {
-                            let _ = insert_message(
-                                &conn,
-                                &ChatMessageDb {
-                                    id: chat.id.clone(),
-                                    sender_id: my_pub_tx.clone(),
-                                    recipient_id: peer_pub_bytes.clone(),
-                                    timestamp: chat.timestamp as i64,
-                                    content: chat.content,
-                                    status: "sent".to_string(),
-                                },
-                            );
-                        }
+                        // DB logic handled by app.rs now
                     }
                 }
             }

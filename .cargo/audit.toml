@@ -1,0 +1,6 @@
+[advisories]
+ignore = [
+    "RUSTSEC-2026-0118", # hickory-proto (pulled by unused libp2p mdns optional feature in lockfile)
+    "RUSTSEC-2026-0119", # hickory-proto (pulled by unused libp2p mdns optional feature in lockfile)
+    "RUSTSEC-2024-0436"  # paste (unmaintained warning)
+]

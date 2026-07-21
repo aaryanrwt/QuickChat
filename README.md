@@ -1,7 +1,7 @@
 # QuickChat
 
 <p align="center">
-  <strong>A secure, peer-to-peer terminal messenger built in Rust.</strong>
+  <strong>The Decentralized, Secure, Peer-to-Peer Terminal Communicator</strong>
 </p>
 
 <p align="center">
@@ -13,174 +13,240 @@
   </a>
 </p>
 
-QuickChat enables developers to communicate securely over local networks without centralized servers, accounts, or cloud infrastructure. It solves the problem of untrusted networks and third-party data mining by keeping your conversations purely peer-to-peer, encrypted, and inside the environment developers love most: the terminal.
+## 1. Overview
+QuickChat enables developers to communicate securely over local networks and the internet without centralized servers, accounts, or cloud infrastructure. It solves the problem of untrusted networks and corporate data mining by keeping your conversations purely peer-to-peer, encrypted, and inside the environment developers love most: the terminal.
 
-
-
-## ✨ Features
-
-- **Peer-to-Peer Encrypted Messaging**: Connect directly to other users without a middleman server. Every connection is secured via the Noise Protocol framework, ensuring complete privacy.
-- **Terminal-Native UI**: Built with `ratatui`, the interface is entirely keyboard-driven, fast, and familiar to anyone who uses tools like `vim` or `htop`.
-- **WASM Plugin Ecosystem**: Extend QuickChat using WebAssembly plugins (`wasm32-wasi`). This allows the community to build custom commands (like `/ping`) in a safe, sandboxed environment without altering the core Rust binary.
-- **SQLite Message Persistence**: Your chat history is saved locally in an embedded SQLite database, meaning you never lose track of a conversation, and your data never leaves your machine.
-- **Local Peer Discovery**: Automatically discover other QuickChat users on your local network using mDNS, bypassing the need for manual IP configuration.
+Whether you're pair-programming across the globe or collaborating securely within an air-gapped network, QuickChat delivers uncompromising privacy with a stunning terminal-native UX.
 
 ---
 
-## 📥 Installation
+## 2. Screenshots
+
+| Dark Theme Workspace |
+| :---: |
+| ![Dark Theme](https://raw.githubusercontent.com/aaryanrwt/QuickChat/main/docs/assets/theme_dark.jpg) |
+
+---
+
+## 3. Feature Overview
+
+### Peer-to-Peer Encrypted Messaging
+* **What it does:** Connects you directly to peers using QUIC streams.
+* **Why it exists:** To eliminate middleman servers and data harvesting.
+* **How to use it:** Type `/connect <pubkey>`.
+* **Benefits:** Complete privacy, zero downtime from centralized outages, and ultra-low latency.
+
+### OpenMLS Group Ratcheting
+* **What it does:** Secures multi-party groups using Continuous Group Key Agreement (CGKA).
+* **Why it exists:** To provide Perfect Forward Secrecy (PFS) in dynamic chat rooms.
+* **How to use it:** Happens automatically when multiple peers join a routed chat.
+* **Benefits:** Even if a key is compromised today, past and future messages remain secure.
+
+### Global Peer Discovery (Kademlia DHT)
+* **What it does:** Automatically discovers other QuickChat users globally.
+* **Why it exists:** To overcome the limitations of local-network mDNS.
+* **How to use it:** Handled silently in the background by `libp2p-kad`.
+* **Benefits:** Connect with developers anywhere on the internet without manual port-forwarding.
+
+### SQLite Message Persistence
+* **What it does:** Saves encrypted chat history locally to your disk.
+* **Why it exists:** So you don't lose your conversations when closing the terminal.
+* **How to use it:** Enabled by default. History populates automatically on launch.
+* **Benefits:** Full data ownership and offline reading capabilities.
+
+### WASM Plugin Ecosystem
+* **What it does:** Allows community plugins to run in a secure, sandboxed environment.
+* **Why it exists:** To provide infinite extensibility without risking the core application.
+* **How to use it:** Load `.wasm` modules into the `plugins/` directory.
+* **Benefits:** Add features like GitHub integrations or local LLM bridging safely.
+
+---
+
+## 4. Version Comparison
+
+| Feature | Version 2 | Version 3 |
+|----------|-----------|-----------|
+| **Networking** | LAN only | Global Internet routing |
+| **Plugins** | Basic execution | WASI sandboxed, IPC host communication |
+| **Discovery (DHT)** | None (mDNS only) | Kademlia DHT integration |
+| **Relay** | None | `quickchat_relay` daemon for asynchronous delivery |
+| **Cryptography (MLS)**| Noise_XX (1-on-1 only) | OpenMLS (Group CGKA support) |
+| **Persistence (SQLite)**| Ephemeral RAM only | Persistent local SQLite database |
+| **UI** | Single chat view | Multi-pane workspace (Chat, Contacts, Plugins) |
+| **Commands** | Basic slash commands | Advanced `code://` pointers for live editor spawning |
+| **Security** | TOFU Key Exchange | Sandboxed plugins and Perfect Forward Secrecy |
+
+---
+
+## 5. Installation
 
 ### Build from Source
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/aaryanrwt/QuickChat.git
-   cd QuickChat
-   ```
-2. Build the workspace:
-   ```bash
-   cargo build --release
-   ```
-3. The executable will be available at `./target/release/quickchat_cli`.
-4. Run the executable:
-   ```bash
-   ./target/release/quickchat_cli
-   ```
+Ensure you have the latest Rust toolchain installed.
+
+**Linux / macOS / Windows:**
+```bash
+git clone https://github.com/aaryanrwt/QuickChat.git
+cd QuickChat
+cargo build --release
+```
+
+**Using Cargo:**
+```bash
+cargo install --path .
+```
+
+The executable will be placed in your cargo bin directory (e.g., `~/.cargo/bin/quickchat_cli`).
 
 ---
 
-## 🚀 Quick Start
+## 6. Quick Start
 
-1. **Launch**: Start the application by running the CLI.
+1. **Launch:** Run the executable.
    ```bash
    quickchat_cli
    ```
-2. **Discover**: Check the left "Contacts" pane for locally discovered peers on your network.
-3. **Connect**: Use the `/connect` command with a peer's public key (displayed in their UI) to initiate a secure handshake.
-4. **Message**: Type your message in the input bar and press `Enter` to send it instantly over the P2P QUIC stream.
-5. **Exit**: Press `Ctrl+C` or type `/quit` to close the application safely.
+2. **Discover:** The DHT will automatically map local and global peers. Check your Contacts pane.
+3. **Connect:** Use the `/connect` command with a peer's public key (displayed at the top of their UI).
+4. **Message:** Type your message and hit `Enter`.
+5. **Plugins:** Try sending a `code://file.rs:42` pointer to automatically trigger their local editor!
+6. **Exit:** Type `/quit` or press `Ctrl+C`.
 
 ---
 
-## ⌨️ Commands
-
-QuickChat utilizes a slash-command syntax for all actions.
+## 7. Commands
 
 ### `/help`
-- **Purpose**: Displays the integrated help menu and lists all available loaded commands.
-- **Syntax**: `/help`
-- **Example**: `/help`
-- **Expected Output**: Opens a modal in the center of the terminal displaying all shortcuts and available plugin commands.
+* **Purpose:** Displays the integrated help menu.
+* **Syntax:** `/help`
+* **Example:** `/help`
+* **Expected output:** A modal summarizing all available keyboard shortcuts and plugin commands.
 
 ### `/connect`
-- **Purpose**: Initiates a Noise handshake to establish a secure connection with a peer.
-- **Syntax**: `/connect <public_key>`
-- **Example**: `/connect 8a2f...3c`
-- **Expected Output**: The connection details pane updates to "Connected", and you can begin sending messages.
+* **Purpose:** Initiates an OpenMLS handshake to establish a secure P2P connection.
+* **Syntax:** `/connect <public_key>`
+* **Example:** `/connect 8a2f...3c`
+* **Expected output:** The UI will display a successful connection status and transition to the chat view.
 
 ### `/clear`
-- **Purpose**: Clears the current terminal workspace pane to improve readability.
-- **Syntax**: `/clear`
-- **Example**: `/clear`
-- **Expected Output**: The chat history UI clears (the SQLite database is unaffected).
+* **Purpose:** Clears the visible terminal workspace pane.
+* **Syntax:** `/clear`
+* **Example:** `/clear`
+* **Expected output:** The screen clears. (Your SQLite history remains intact on disk).
 
 ### `/ping`
-- **Purpose**: An example command implemented via the bundled WASM plugin.
-- **Syntax**: `/ping`
-- **Example**: `/ping`
-- **Expected Output**: The plugin intercepts the command and the host responds with `Pong!`.
+* **Purpose:** Evaluates the WASM plugin sandbox functionality.
+* **Syntax:** `/ping`
+* **Example:** `/ping`
+* **Expected output:** The plugin intercepts the command and returns `Pong!`.
+
+### `/quit`
+* **Purpose:** Safely flushes the database, closes network streams, and exits.
+* **Syntax:** `/quit`
+* **Example:** `/quit`
+* **Expected output:** Terminal returns to the standard shell prompt.
 
 ---
 
-## 🏗️ Architecture
+## 8. Architecture
 
-QuickChat utilizes an event-driven, highly modular architecture to separate networking, UI, and plugin execution.
+QuickChat utilizes an event-driven, highly modular architecture to separate networking, UI, and plugin execution. The core application logic coordinates these systems using a highly concurrent asynchronous event bus.
 
-- **CLI**: The entry point that initializes the async runtime and configuration.
-- **Event Bus**: The nervous system of the application (`tokio::sync::broadcast`). All components talk to each other by emitting and listening for events (e.g., `MessageReceived`, `InputSubmit`).
-- **Networking**: Handles the QUIC streams and cryptographic Noise handshakes.
-- **UI**: Renders the terminal interface and translates keystrokes into Event Bus events.
-- **Plugins**: A WebAssembly sandbox (`wasmtime`) that listens to the event bus and executes third-party code securely.
+### Component Diagram
 
-**How Messages Travel:**
-User types in UI -> UI emits `InputSubmit` -> Event Bus -> Network catches event -> Encrypts & Sends via QUIC -> Receiver Network catches packet -> Decrypts -> Emits `MessageReceived` -> UI & SQLite DB catch event -> UI renders message & DB saves it.
+```mermaid
+graph TD
+    subgraph QuickChat Node
+        CLI[CLI Entry Point] --> Core[Application Core]
+        Core --> DB[(SQLite Database)]
+        Core --> TUI[Ratatui UI]
+        
+        Core --> Net[Network Layer]
+        Net --> QUIC[QUIC Transport]
+        Net --> DHT[Kademlia DHT]
+        Net --> MLS[OpenMLS Crypto Engine]
+        
+        Core --> Plugins[WASM Plugin Host]
+        Plugins --> Sandbox[WASI Sandbox]
+    end
+    
+    QUIC <--> Internet((P2P Internet))
+    DHT <--> Internet
+```
 
-```text
-  +-----------------------------------------------------------+
-  |                   QuickChat Event Bus                     |
-  |                (tokio::sync::broadcast)                   |
-  +----+------------------------+------------------------+----+
-       |                        |                        |
-+------v-------+        +-------v--------+       +-------v--------+
-|              |        |                |       |                |
-| quickchat_tui|        | quickchat_net  |       | Plugin Host    |
-| (Ratatui)    |        | (QUIC / Noise) |       | (Wasmtime)     |
-|              |        |                |       |                |
-+------+-------+        +-------+--------+       +-------+--------+
+### Message Flow Sequence
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant TUI
+    participant Core
+    participant Net
+    participant Peer
+    
+    User->>TUI: Types message & hits Enter
+    TUI->>Core: Emits AppEvent::Message
+    Core->>Core: Saves to SQLite
+    Core->>Net: Dispatches for transmission
+    Net->>Net: Encrypts via OpenMLS
+    Net->>Peer: Streams via QUIC
+    Peer-->>Net: Acknowledges receipt
 ```
 
 ---
 
-## 📂 Project Structure
+## 9. Project Structure
 
-The monorepo is split into logical crates to maximize compile times and separation of concerns:
+The monorepo is meticulously split into logical crates:
 
-- `quickchat_cli`: The main executable and CLI argument parser.
-- `quickchat_core`: The central event bus, SQLite database logic (`rusqlite`), and shared application state.
-- `quickchat_net`: The P2P networking layer handling QUIC streams, mDNS discovery, and Noise encryption.
-- `quickchat_tui`: The terminal user interface built with `ratatui` and `crossterm`.
-- `quickchat_plugin_host`: The `wasmtime` runtime that securely loads and executes `.wasm` plugins.
-- `quickchat_plugin_sdk`: A library containing the macros (`export_plugin!`) and FFI bindings that plugin developers use to build QuickChat extensions.
-- `quickchat_types`: The shared Protocol Buffer definitions used to pass data across the network and the WASM boundaries.
-
----
-
-## 🛡️ Security
-
-QuickChat is built on modern cryptographic standards.
-
-- **Encryption**: Every message is End-to-End Encrypted (E2EE) using the Noise Protocol framework (specifically, the `Noise_XX` handshake pattern utilizing X25519 for key exchange and ChaCha20-Poly1305 for AEAD).
-- **Identity**: Identities are tied to locally generated Ed25519 key pairs. There are no central servers holding your private keys.
-- **Plugin Sandbox**: Third-party plugins execute inside a restricted WebAssembly System Interface (WASI). By default, plugins have zero access to your local filesystem or network sockets.
-- **Peer Discovery**: Discovery happens purely over local multicast DNS (mDNS) or via explicit public key exchange. 
-- **Privacy**: The application does not collect telemetry, analytics, or usage data.
+* **`quickchat_cli`**: The binary executable and command-line argument parser.
+* **`quickchat_core`**: The central application state, SQLite database logic, and OpenMLS cryptography engine.
+* **`quickchat_net`**: The P2P networking layer handling QUIC transport.
+* **`quickchat_dht`**: The Kademlia-based global peer routing and discovery module.
+* **`quickchat_relay`**: An optional, headless daemon for asynchronous store-and-forward message delivery.
+* **`quickchat_tui`**: The interactive terminal user interface built with `ratatui` and `crossterm`.
+* **`quickchat_plugin_host`**: The `wasmtime` runtime that securely loads and executes third-party `.wasm` plugins.
+* **`quickchat_plugin_sdk`**: FFI bindings and macros for community developers building QuickChat extensions.
+* **`quickchat_types`**: Shared Protocol Buffer definitions used across network and WASM boundaries.
 
 ---
 
-## 🗺️ Roadmap
+## 10. Security
 
-QuickChat is actively evolving. Our upcoming priorities focus on improving the core developer experience:
-
-- **Crates.io Publishing**: Publish all QuickChat crates to crates.io for easier installation.
-- **Better File Transfer**: Optimized chunking and streaming for large binary files.
-- **Themes**: Full TOML-based dynamic theming support for terminal colors.
-- **Plugin Ecosystem**: A public registry for discovering and installing community-built WASM plugins.
-- **Workspace Improvements**: Support for multiple tabs and collapsible sidebars.
-- **Performance**: Optimizing Ratatui render loops and reducing memory allocations during high-throughput networking.
-- **Documentation**: Extensive tutorials for building your first WASM plugin.
+* **Messaging Layer Security (MLS):** We utilize the `MLS_128_DHKEMX25519_CHACHA20POLY1305_SHA256_Ed25519` ciphersuite. This provides state-of-the-art Authenticated Encryption with Associated Data (AEAD) and Perfect Forward Secrecy.
+* **Plugin Sandbox:** Third-party plugins execute inside a restricted WebAssembly System Interface (WASI). They are isolated from the host OS network stack and filesystem, communicating strictly via structured Inter-Process Communication (IPC).
+* **Decentralized Discovery:** The Kademlia DHT prevents any central server from mapping the social graph of who is communicating with whom.
+* **Local Storage:** Your chat histories (`quickchat.db`) are saved strictly to your local SSD. We have zero access to your data.
 
 ---
 
-## 🤝 Contributing
+## 11. Performance
 
-We welcome contributions from the community! 
-
-- **Coding Standards**: All Rust code must pass `cargo fmt` and `cargo clippy -- -D warnings`.
-- **Testing**: Ensure all unit tests pass (`cargo test`) before submitting a PR.
-- **Branch Naming**: Use descriptive prefixes (e.g., `feat/`, `fix/`, `docs/`).
-- **Commit Style**: We follow Conventional Commits (e.g., `feat: add new CLI flag`).
-- **CI Expectations**: Pull requests will not be merged unless the GitHub Actions CI pipeline is green.
-
-Please read `CONTRIBUTING.md` for more detailed information.
+* **QUIC Multiplexing:** Messages and file transfers occur over heavily multiplexed UDP streams, eliminating the head-of-line blocking associated with traditional TCP sockets.
+* **Asynchronous I/O:** Powered entirely by `tokio`, the application can handle thousands of concurrent background DHT queries without blocking the 60 FPS UI render thread.
+* **Statically Linked:** The entire application compiles down to a single binary with no bulky runtime requirements.
 
 ---
 
-## ❤️ Support
+## 12. Contributing
 
-QuickChat is an independent, open-source project. Building a secure, cross-platform terminal ecosystem takes time and dedication. 
-
-If this tool improves your workflow or saves you time, consider supporting its continued development. Your contributions help maintain the infrastructure, fund CI runners, and support the creation of core plugins.
+We welcome community contributions! To get started:
+1. Ensure your code passes all formatting and linting checks:
+   ```bash
+   cargo fmt --all
+   cargo clippy --workspace --all-targets --all-features -- -D warnings
+   ```
+2. Verify all tests pass locally:
+   ```bash
+   cargo test --workspace
+   ```
+3. Submit a Pull Request with a clear description of the feature or bug fix. All PRs must pass the GitHub Actions CI pipeline.
 
 ---
 
-## 📜 License
+## 13. Roadmap
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Upcoming features planned for the **Version 4** lifecycle:
+* **Asynchronous Group Joins:** Upgrading the `quickchat_relay` to temporarily hold encrypted MLS KeyPackages to support seamless offline group invitations.
+* **Encrypted SQLite:** Integrating SQLCipher to encrypt the local `quickchat.db` at rest.
+* **Plugin Registry:** A centralized index for discovering and installing community WASM plugins directly from the TUI.
+* **Automated CI/CD Hooks:** Native integration to pipe GitHub Actions build results directly into QuickChat channels.

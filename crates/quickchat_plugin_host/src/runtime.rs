@@ -46,7 +46,7 @@ impl PluginManager {
         // - Inherit stdio only for debugging purposes
         builder.inherit_stdio();
         builder.env("QUICKCHAT_VERSION", "3.0.0");
-        
+
         let wasi = builder.build_p1();
         let mut store = Store::new(&self.engine, PluginContext { wasi_ctx: wasi });
 
