@@ -1,0 +1,8 @@
+[package]
+name = "quickchat_relay"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+quickchat_dht = { version = "0.1.0", path = "../quickchat_dht" }
+tokio = { version = "1.53.1", features = ["full"] }
