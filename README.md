@@ -20,13 +20,7 @@ Whether you're pair-programming across the globe or collaborating securely withi
 
 ---
 
-## 2. Screenshots
 
-| Dark Theme Workspace |
-| :---: |
-| ![Dark Theme](https://raw.githubusercontent.com/aaryanrwt/QuickChat/main/docs/assets/theme_dark.jpg) |
-
----
 
 ## 3. Feature Overview
 
