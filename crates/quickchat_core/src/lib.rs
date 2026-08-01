@@ -1,3 +1,4 @@
+pub mod ai;
 pub mod db;
 pub mod event_bus;
 pub mod file_manager;

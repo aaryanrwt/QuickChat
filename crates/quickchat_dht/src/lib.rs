@@ -1,10 +1,11 @@
-use libp2p::{Swarm, SwarmBuilder, kad, noise, swarm::NetworkBehaviour, tcp, yamux};
+use libp2p::{Swarm, SwarmBuilder, kad, noise, relay, swarm::NetworkBehaviour, tcp, yamux};
 use std::error::Error;
 use std::time::Duration;
 
 #[derive(NetworkBehaviour)]
 pub struct QuickChatBehavior {
     pub kademlia: kad::Behaviour<kad::store::MemoryStore>,
+    pub relay: relay::Behaviour,
 }
 
 pub struct DhtNode {
@@ -21,7 +22,9 @@ impl DhtNode {
         let store = kad::store::MemoryStore::new(local_peer_id);
         let kademlia = kad::Behaviour::with_config(local_peer_id, store, cfg);
 
-        let behavior = QuickChatBehavior { kademlia };
+        let relay = relay::Behaviour::new(local_peer_id, Default::default());
+
+        let behavior = QuickChatBehavior { kademlia, relay };
 
         let swarm = SwarmBuilder::with_existing_identity(local_key)
             .with_tokio()

@@ -2,8 +2,10 @@ use anyhow::Result;
 use std::path::Path;
 
 pub mod memory;
+pub mod registry;
 pub mod runtime;
 
+pub use registry::DecentralizedRegistry;
 pub use runtime::PluginManager;
 
 /// Opaque handle to a loaded plugin.

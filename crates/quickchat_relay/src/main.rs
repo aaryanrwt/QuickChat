@@ -1,21 +1,29 @@
+use libp2p::futures::StreamExt;
 use quickchat_dht::DhtNode;
 use std::error::Error;
-use tokio::time::{Duration, sleep};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    println!("Starting QuickChat Relay Server (V3)...");
+    println!("Starting QuickChat Community Relay Node (V4)...");
 
-    // Initialize the DHT Node for the relay
+    // Initialize the DHT Node for the relay (with relay behavior enabled)
     let mut dht_node = DhtNode::new()?;
     dht_node.start_listening()?;
 
     println!("QuickChat Relay is running and listening on the DHT network.");
     println!("Node PeerID: {}", dht_node.swarm.local_peer_id());
 
-    // Keep the relay alive indefinitely
+    // Keep the relay alive and process network events
     loop {
-        sleep(Duration::from_secs(60)).await;
-        println!("Relay node heartbeat...");
+        tokio::select! {
+            event = dht_node.swarm.select_next_some() => {
+                match event {
+                    libp2p::swarm::SwarmEvent::NewListenAddr { address, .. } => {
+                        println!("Relay listening on: {}", address);
+                    }
+                    _ => {}
+                }
+            }
+        }
     }
 }
