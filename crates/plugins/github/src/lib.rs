@@ -1,5 +1,5 @@
 use quickchat_plugin_sdk::{QuickChatPlugin, export_plugin};
-use quickchat_types::proto::ChatMessage;
+
 
 #[derive(Default)]
 pub struct Plugin;

@@ -6,9 +6,7 @@ use std::sync::OnceLock;
 static POINTER_REGEX: OnceLock<Regex> = OnceLock::new();
 
 pub fn parse_markdown_line<'a>(text: &'a str) -> Vec<Span<'a>> {
-    let re = POINTER_REGEX.get_or_init(|| {
-        Regex::new(r"([a-zA-Z0-9_/\.\-]+\.[a-z]+:\d+)").unwrap()
-    });
+    let re = POINTER_REGEX.get_or_init(|| Regex::new(r"([a-zA-Z0-9_/\.\-]+\.[a-z]+:\d+)").unwrap());
 
     let mut spans = Vec::new();
     let mut last_end = 0;
@@ -19,7 +17,9 @@ pub fn parse_markdown_line<'a>(text: &'a str) -> Vec<Span<'a>> {
         }
         spans.push(Span::styled(
             mat.as_str().to_string(),
-            Style::default().fg(Color::Green).add_modifier(Modifier::UNDERLINED),
+            Style::default()
+                .fg(Color::Green)
+                .add_modifier(Modifier::UNDERLINED),
         ));
         last_end = mat.end();
     }
@@ -35,24 +35,27 @@ fn parse_basic_markdown<'a>(text: &'a str) -> Vec<Span<'a>> {
     let mut spans = Vec::new();
     let mut current = String::new();
     let mut i = 0;
-    
+
     let chars: Vec<char> = text.chars().collect();
     let len = chars.len();
 
     while i < len {
         // Bold
-        if i + 1 < len && chars[i] == '*' && chars[i+1] == '*' {
+        if i + 1 < len && chars[i] == '*' && chars[i + 1] == '*' {
             if !current.is_empty() {
                 spans.push(Span::raw(current.clone()));
                 current.clear();
             }
             i += 2;
             let mut bold_text = String::new();
-            while i < len && !(i + 1 < len && chars[i] == '*' && chars[i+1] == '*') {
+            while i < len && !(i + 1 < len && chars[i] == '*' && chars[i + 1] == '*') {
                 bold_text.push(chars[i]);
                 i += 1;
             }
-            spans.push(Span::styled(bold_text, Style::default().add_modifier(Modifier::BOLD)));
+            spans.push(Span::styled(
+                bold_text,
+                Style::default().add_modifier(Modifier::BOLD),
+            ));
             i += 2; // skip closing **
             continue;
         }
@@ -69,7 +72,10 @@ fn parse_basic_markdown<'a>(text: &'a str) -> Vec<Span<'a>> {
                 italic_text.push(chars[i]);
                 i += 1;
             }
-            spans.push(Span::styled(italic_text, Style::default().add_modifier(Modifier::ITALIC)));
+            spans.push(Span::styled(
+                italic_text,
+                Style::default().add_modifier(Modifier::ITALIC),
+            ));
             i += 1; // skip closing *
             continue;
         }

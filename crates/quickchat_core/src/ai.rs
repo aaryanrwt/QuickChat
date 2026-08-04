@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::process::Command;
 
 /// A client for piping data securely to local, offline Large Language Models.
@@ -31,7 +31,7 @@ impl LocalLlmClient {
             .arg("-s")
             .arg("-X")
             .arg("POST")
-            .arg(&format!("{}/api/generate", self.endpoint))
+            .arg(format!("{}/api/generate", self.endpoint))
             .arg("-d")
             .arg(&payload)
             .output();

@@ -1,4 +1,4 @@
-use quickchat_types::proto::{Envelope, envelope::Payload, ChatMessage};
+use quickchat_types::proto::{ChatMessage, Envelope, envelope::Payload};
 use serde::{Deserialize, Serialize};
 
 /// Foundational structure for an incoming Matrix room event

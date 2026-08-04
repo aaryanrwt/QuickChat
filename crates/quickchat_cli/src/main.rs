@@ -90,7 +90,7 @@ async fn main() -> Result<()> {
 
             // Accept incoming connections
             let accept_node = quic_node.clone();
-            
+
             // Spawn webhook listener
             tokio::spawn(webhook::spawn_webhook_listener(tx.clone()));
 
@@ -384,26 +384,38 @@ async fn main() -> Result<()> {
         Commands::Stream { cmd } => {
             use tokio::io::AsyncBufReadExt;
             use tokio::process::Command;
-            
+
             let socket = tokio::net::UdpSocket::bind("0.0.0.0:0").await?;
             let mut child = if cfg!(target_os = "windows") {
-                Command::new("cmd").arg("/C").arg(&cmd).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped()).spawn()?
+                Command::new("cmd")
+                    .arg("/C")
+                    .arg(&cmd)
+                    .stdout(std::process::Stdio::piped())
+                    .stderr(std::process::Stdio::piped())
+                    .spawn()?
             } else {
-                Command::new("sh").arg("-c").arg(&cmd).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped()).spawn()?
+                Command::new("sh")
+                    .arg("-c")
+                    .arg(&cmd)
+                    .stdout(std::process::Stdio::piped())
+                    .stderr(std::process::Stdio::piped())
+                    .spawn()?
             };
 
             let stdout = child.stdout.take().unwrap();
             let mut reader = tokio::io::BufReader::new(stdout).lines();
-            
+
             println!("Streaming command output to daemon: {}", cmd);
             let start_msg = format!("[STREAM START] {}", cmd);
-            let _ = socket.send_to(start_msg.as_bytes(), "127.0.0.1:18080").await;
+            let _ = socket
+                .send_to(start_msg.as_bytes(), "127.0.0.1:18080")
+                .await;
 
             while let Ok(Some(line)) = reader.next_line().await {
                 let msg = format!("[STREAM] {}", line);
                 let _ = socket.send_to(msg.as_bytes(), "127.0.0.1:18080").await;
             }
-            
+
             let _ = child.wait().await;
             let _ = socket.send_to(b"[STREAM END]", "127.0.0.1:18080").await;
         }
@@ -524,16 +536,18 @@ async fn handle_connection(
                                         ));
                                     }
                                 }
-                                Some(Payload::ClipboardSync(sync)) => {
+                                Some(Payload::ClipboardSync(_sync)) => {
                                     let _ = tx_rx.send(quickchat_tui::app::AppEvent::System(
                                         format!("{} updated your clipboard.", peer_name_rx),
                                     ));
                                     // Set clipboard if arboard is integrated in CLI or just notify TUI
                                 }
                                 Some(Payload::BufferSync(sync)) => {
-                                    let _ = tx_rx.send(quickchat_tui::app::AppEvent::System(
-                                        format!("{} synced buffer {}.", peer_name_rx, sync.filename),
-                                    ));
+                                    let _ =
+                                        tx_rx.send(quickchat_tui::app::AppEvent::System(format!(
+                                            "{} synced buffer {}.",
+                                            peer_name_rx, sync.filename
+                                        )));
                                 }
                                 None => {}
                             }
@@ -555,19 +569,22 @@ async fn handle_connection(
 
                     if let Ok(send) = conn_tx.open_uni().await {
                         tokio::spawn(async move {
-                            let _ = quickchat_core::file_manager::send_file(send, &path_buf, file_id).await;
+                            let _ =
+                                quickchat_core::file_manager::send_file(send, &path_buf, file_id)
+                                    .await;
                         });
                     }
                     continue;
                 } else if msg.starts_with("/group join ") {
-                    active_group_id = Some(msg.trim_start_matches("/group join ").trim().to_string());
+                    active_group_id =
+                        Some(msg.trim_start_matches("/group join ").trim().to_string());
                     continue;
                 } else if msg.starts_with("/clip push ") {
                     let clip_text = msg.trim_start_matches("/clip push ").to_string();
                     Envelope {
-                        payload: Some(Payload::ClipboardSync(quickchat_types::proto::ClipboardSync {
-                            content: clip_text,
-                        })),
+                        payload: Some(Payload::ClipboardSync(
+                            quickchat_types::proto::ClipboardSync { content: clip_text },
+                        )),
                     }
                 } else if msg.starts_with("/pair ") {
                     let file_path = msg.trim_start_matches("/pair ").trim();
@@ -584,7 +601,10 @@ async fn handle_connection(
                     let chat = ChatMessage {
                         id: uuid::Uuid::new_v4().to_string(),
                         content: "[Voice Note: 10s audio clip recorded]".to_string(),
-                        timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+                        timestamp: std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap()
+                            .as_millis() as u64,
                         group_id: active_group_id.clone(),
                     };
                     Envelope {
@@ -594,7 +614,10 @@ async fn handle_connection(
                     let chat = ChatMessage {
                         id: uuid::Uuid::new_v4().to_string(),
                         content: msg,
-                        timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+                        timestamp: std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap()
+                            .as_millis() as u64,
                         group_id: active_group_id.clone(),
                     };
                     Envelope {
@@ -613,7 +636,5 @@ async fn handle_connection(
                 }
             }
         });
-
-
     }
 }

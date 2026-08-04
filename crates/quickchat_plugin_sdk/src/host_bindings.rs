@@ -68,12 +68,7 @@ pub unsafe extern "C" fn host_query_ai(_a: *const u8, _b: usize) -> i32 {
 /// Mock implementation for non-wasm architectures.
 #[cfg(not(target_arch = "wasm32"))]
 #[no_mangle]
-pub unsafe extern "C" fn host_db_insert(
-    _a: *const u8,
-    _b: usize,
-    _c: *const u8,
-    _d: usize,
-) -> i32 {
+pub unsafe extern "C" fn host_db_insert(_a: *const u8, _b: usize, _c: *const u8, _d: usize) -> i32 {
     0
 }
 
