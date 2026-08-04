@@ -1,6 +1,5 @@
 use quickchat_plugin_sdk::{QuickChatPlugin, export_plugin};
 
-
 #[derive(Default)]
 pub struct Plugin;
 
