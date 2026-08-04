@@ -126,8 +126,11 @@ impl App {
                     && key.code == KeyCode::Char('o')
                 {
                     if let Some(msg) = self.messages.last() {
-                        let re = regex::Regex::new(r"([a-zA-Z0-9_/\.\-]+\.[a-z]+:\d+)").unwrap();
-                        if let Some(mat) = re.find(msg) {
+                        static RE: std::sync::LazyLock<regex::Regex> =
+                            std::sync::LazyLock::new(|| {
+                                regex::Regex::new(r"([a-zA-Z0-9_/\.\-]+\.[a-z]+:\d+)").unwrap()
+                            });
+                        if let Some(mat) = RE.find(msg) {
                             let path_line = mat.as_str();
                             let _ = std::process::Command::new("code")
                                 .arg("--goto")
@@ -201,14 +204,14 @@ impl App {
 
                             self.input.reset();
                         } else if msg.starts_with("/clip push") {
-                            if let Ok(mut ctx) = arboard::Clipboard::new() {
-                                if let Ok(text) = ctx.get_text() {
-                                    self.messages
-                                        .push(format!("You pushed clipboard: {}", text));
-                                    // Normally we would send this over tx_outbound or format it in a specific way
-                                    // For now, send as a command message for the CLI to parse and send as Payload::ClipboardSync
-                                    let _ = self.tx_outbound.send(format!("/clip push {}", text));
-                                }
+                            if let Ok(mut ctx) = arboard::Clipboard::new()
+                                && let Ok(text) = ctx.get_text()
+                            {
+                                self.messages
+                                    .push(format!("You pushed clipboard: {}", text));
+                                // Normally we would send this over tx_outbound or format it in a specific way
+                                // For now, send as a command message for the CLI to parse and send as Payload::ClipboardSync
+                                let _ = self.tx_outbound.send(format!("/clip push {}", text));
                             }
                             self.input.reset();
                         } else if msg.starts_with("/group join ") {
