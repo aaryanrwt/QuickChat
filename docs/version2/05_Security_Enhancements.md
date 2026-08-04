@@ -20,12 +20,12 @@ V1 assumes a 1:1 mapping between a user and a single device (single key pair). M
 As defined in the Plugin Ecosystem spec, the WASM runtime provides the primary boundary.
 - **Cryptographic Isolation:** Plugins *never* have direct access to the user's private keys.
 - **Host-Mediated Encryption:** If a plugin needs to send a secure message, it passes the plaintext to the host via the `host_send_message` API. The host performs the ChaCha20-Poly1305 encryption.
-- **Verified Plugins:** Introduction of cryptographic signatures for plugins. The QuickChat client will verify the signature of a plugin against a known registry or Enterprise CA before loading it, preventing supply-chain attacks.
+- **Verified Plugins:** Introduction of cryptographic signatures for plugins. The QuickChat client will verify the signature of a plugin against a known registry or Community CA before loading it, preventing supply-chain attacks.
 
-## 4. Enterprise Audit & Compliance
+## 4. Community Audit & Compliance
 
-Enterprise environments require visibility without compromising End-to-End Encryption (E2EE).
-- **Tamper-Evident Audit Logs:** QuickChat Enterprise instances will log metadata (connection times, IP addresses, file transfer sizes, plugin executions) to a local, append-only cryptographic ledger (e.g., using a Merkle tree structure).
+Community environments require visibility without compromising End-to-End Encryption (E2EE).
+- **Tamper-Evident Audit Logs:** QuickChat Community instances will log metadata (connection times, IP addresses, file transfer sizes, plugin executions) to a local, append-only cryptographic ledger (e.g., using a Merkle tree structure).
 - **Data Loss Prevention (DLP) (Opt-in):** In strict enterprise deployments, an organization may require an "Escrow Key" to be added to group chats to scan for exfiltration. This must be explicitly transparent to all users in the chat via persistent UI warnings.
 
 ## 5. Forward-Looking Cryptography: Post-Quantum (PQC)
@@ -41,3 +41,4 @@ V1 uses basic file encryption for local keys. V2 will integrate deeply with OS-l
 - **Windows:** TPM / Credential Guard.
 - **Linux:** Secret Service API / Keyring.
 This prevents private key extraction even if the host filesystem is compromised by malware.
+

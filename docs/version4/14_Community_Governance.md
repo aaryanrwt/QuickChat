@@ -12,5 +12,6 @@ V4 transitions QuickChat from a company-led project to a fully community-governe
 *   There are no CLA (Contributor License Agreement) requirements that transfer copyright to a single corporate entity, ensuring the code remains forever free.
 
 ## 3. Decentralized Infrastructure Funding
-*   Instead of charging for "Enterprise" features, the project relies on community donations (GitHub Sponsors, Open Collective) to fund official infrastructure (e.g., bootstrap nodes for the DHT, public plugin registry).
+*   Instead of charging for "Community" features, the project relies on community donations (GitHub Sponsors, Open Collective) to fund official infrastructure (e.g., bootstrap nodes for the DHT, public plugin registry).
 *   Companies are encouraged to host their own relay nodes and contribute code upstream.
+

@@ -11,6 +11,7 @@ The Independent Review Board verified that all public-facing documentation accur
 4. **Code Comments**: Rustdoc comments were added/updated throughout `quickchat_core::mls` and `quickchat_dht`.
 
 ### Consistency Check
-There are no discrepancies between the `README`, the codebase, and the architectural intent. The public documentation is clean, professional, and free of internal jargon or unreleased Enterprise placeholders.
+There are no discrepancies between the `README`, the codebase, and the architectural intent. The public documentation is clean, professional, and free of internal jargon or unreleased Community placeholders.
 
 **Verdict: PASS**
+

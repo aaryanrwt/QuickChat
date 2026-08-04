@@ -41,7 +41,8 @@ pub fn render(f: &mut Frame, app: &mut App) {
         .messages
         .iter()
         .map(|m| {
-            let content = ratatui::text::Line::from(ratatui::text::Span::raw(m));
+            let spans = crate::markdown::parse_markdown_line(m);
+            let content = ratatui::text::Line::from(spans);
             ListItem::new(content)
         })
         .collect();

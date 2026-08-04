@@ -1,0 +1,2 @@
+# Research Analysis
+Comprehensive review of all V1-V4 documents reveals a solid foundation but a shift towards enterprise monetization that is now being reverted. V5 focuses on self-hosted, MIT-compatible infrastructure.

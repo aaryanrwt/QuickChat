@@ -5,7 +5,7 @@
 After a rigorous review of the V2 codebase and the historical research archives, the following recommendations represent the definitive path forward for QuickChat V3.
 
 ### 1. Maintain the Pure Open-Source Trajectory
-The temptation to build "Enterprise features" (SSO, LDAP, closed-source hosting) identified in the early research documents poses the greatest risk to QuickChat's identity. **Recommendation:** Permanently deprecate all commercialization plans from the architecture. Build features that serve open-source maintainers and decentralized teams. 
+The temptation to build "Community features" (SSO, LDAP, closed-source hosting) identified in the early research documents poses the greatest risk to QuickChat's identity. **Recommendation:** Permanently deprecate all commercialization plans from the architecture. Build features that serve open-source maintainers and decentralized teams. 
 
 ### 2. Commit to the `PluginRuntime` Abstraction
 The recent decoupling of Wasmtime via the `PluginRuntime` trait was a critical success. **Recommendation:** Expand this trait to support capabilities like filesystem sandboxing and network whitelisting so community developers can safely build complex integrations (e.g., Local LLM assistants, CI/CD hooks).
@@ -19,3 +19,4 @@ Before adding voice notes or shared terminal sessions, we must ensure the core Q
 ***
 
 **Conclusion:** QuickChat V3 is technically viable and strategically positioned to disrupt proprietary communication platforms. By prioritizing developer workflows, decentralization, and an unwavering commitment to open-source principles, V3 will represent a generational leap for the project.
+

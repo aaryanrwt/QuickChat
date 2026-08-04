@@ -15,6 +15,13 @@ extern "C" {
         description_ptr: *const u8,
         description_len: usize,
     ) -> i32;
+    pub fn host_query_ai(prompt_ptr: *const u8, prompt_len: usize) -> i32;
+    pub fn host_db_insert(
+        key_ptr: *const u8,
+        key_len: usize,
+        value_ptr: *const u8,
+        value_len: usize,
+    ) -> i32;
 }
 
 /// # Safety
@@ -49,6 +56,27 @@ pub unsafe extern "C" fn host_register_command(
     0
 }
 
+/// # Safety
+/// Mock implementation for non-wasm architectures.
+#[cfg(not(target_arch = "wasm32"))]
+#[no_mangle]
+pub unsafe extern "C" fn host_query_ai(_a: *const u8, _b: usize) -> i32 {
+    0
+}
+
+/// # Safety
+/// Mock implementation for non-wasm architectures.
+#[cfg(not(target_arch = "wasm32"))]
+#[no_mangle]
+pub unsafe extern "C" fn host_db_insert(
+    _a: *const u8,
+    _b: usize,
+    _c: *const u8,
+    _d: usize,
+) -> i32 {
+    0
+}
+
 pub struct PluginHost;
 
 impl PluginHost {
@@ -61,6 +89,18 @@ impl PluginHost {
     pub fn log_error(message: &str) {
         unsafe {
             host_log(2, message.as_ptr(), message.len());
+        }
+    }
+
+    pub fn query_ai(prompt: &str) {
+        unsafe {
+            host_query_ai(prompt.as_ptr(), prompt.len());
+        }
+    }
+
+    pub fn store_data(key: &str, value: &str) {
+        unsafe {
+            host_db_insert(key.as_ptr(), key.len(), value.as_ptr(), value.len());
         }
     }
 }

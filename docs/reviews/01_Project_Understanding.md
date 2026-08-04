@@ -17,14 +17,14 @@ The core technical pillars are:
 
 The project is structured as a monorepo, aiming for high open-source visibility and eventual enterprise monetization via SSO, audit logs, and managed relays.
 
-## 3. Startup & Enterprise Monetization Review (VC Perspective)
+## 3. Startup & Community Sustainability Review (VC Perspective)
 **Could this become a startup?** Yes, but the path is challenging. Developers are notoriously hard to monetize directly for personal tools. The "Open Core" strategy is the right approach. 
 
 **Who is the customer?** 
 - *V1 (Open Source):* Individual contributors, open-source maintainers, small tight-knit backend teams.
-- *Enterprise (V3+):* Engineering managers, DevOps teams, and CTOs who want secure, auditable, internal developer communication.
+- *Community (V3+):* Engineering managers, DevOps teams, and CTOs who want secure, auditable, internal developer communication.
 
-**What Enterprise Features Should NOT Exist in V1?**
+**What Community Features Should NOT Exist in V1?**
 The PRD correctly excludes SSO, Audit Logs, and managed Cloud Relays from V1. However, V1 *must* lay the foundation for these. For instance, the identity model (public keys) must eventually map to centralized identities (LDAP/SAML) in the enterprise version.
 
 **What should be postponed?**
@@ -36,3 +36,4 @@ To achieve legendary open-source status, QuickChat must nail the "Time to Wow" (
 - **The Good:** A stunning Ratatui interface with animations will look incredible in README GIFs.
 - **The Bad:** If users download it, and they can't connect to their friend because of a Symmetric NAT firewall, they will uninstall it immediately. Reliability is more important than visual polish for developer tools.
 - **Actionable Advice:** The README must explicitly clarify what networking environments are supported in V1. Provide a `quickchat network-test` command to instantly show users their NAT type and whether P2P WAN is possible.
+

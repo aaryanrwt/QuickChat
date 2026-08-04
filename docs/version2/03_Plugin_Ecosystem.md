@@ -64,7 +64,7 @@ network = ["api.github.com"]
 commands = ["/pr", "/issue"]
 read_messages = false
 ```
-The user (or Enterprise Admin) must explicitly grant these permissions. If a plugin attempts an action outside its manifest, the host immediately terminates the WASM instance.
+The user (or Community Admin) must explicitly grant these permissions. If a plugin attempts an action outside its manifest, the host immediately terminates the WASM instance.
 
 ## 6. Development Workflow
 
@@ -73,3 +73,4 @@ The user (or Enterprise Admin) must explicitly grant these permissions. If a plu
 3. Implements the `QuickChatPlugin` trait.
 4. Compiles using `cargo build --target wasm32-wasi`.
 5. Places the output `.wasm` file into the local QuickChat plugins directory for testing.
+

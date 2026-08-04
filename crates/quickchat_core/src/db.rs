@@ -29,6 +29,14 @@ impl ChatDatabase {
             (),
         )?;
 
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS aliases (
+                public_key TEXT PRIMARY KEY,
+                alias TEXT NOT NULL
+            )",
+            (),
+        )?;
+
         Ok(Self { conn })
     }
 
@@ -55,5 +63,23 @@ impl ChatDatabase {
             messages.push(msg?);
         }
         Ok(messages)
+    }
+
+    pub fn insert_alias(&self, public_key: &str, alias: &str) -> Result<()> {
+        self.conn.execute(
+            "INSERT OR REPLACE INTO aliases (public_key, alias) VALUES (?1, ?2)",
+            (public_key, alias),
+        )?;
+        Ok(())
+    }
+
+    pub fn get_alias(&self, public_key: &str) -> Result<Option<String>> {
+        let mut stmt = self.conn.prepare("SELECT alias FROM aliases WHERE public_key = ?1")?;
+        let mut rows = stmt.query([public_key])?;
+        if let Some(row) = rows.next()? {
+            Ok(Some(row.get(0)?))
+        } else {
+            Ok(None)
+        }
     }
 }

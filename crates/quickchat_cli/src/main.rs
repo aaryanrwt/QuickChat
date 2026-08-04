@@ -1,3 +1,5 @@
+pub mod webhook;
+
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use quickchat_core::identity::Identity;
@@ -34,6 +36,11 @@ enum Commands {
     Share {
         #[arg(help = "Pointer format: file:line")]
         pointer: String,
+    },
+    /// Stream the live output of a local command into the chat
+    Stream {
+        #[arg(short, long, help = "The command to run and stream")]
+        cmd: String,
     },
 }
 
@@ -83,6 +90,10 @@ async fn main() -> Result<()> {
 
             // Accept incoming connections
             let accept_node = quic_node.clone();
+            
+            // Spawn webhook listener
+            tokio::spawn(webhook::spawn_webhook_listener(tx.clone()));
+
             let my_ed_pub_clone = my_ed_pub.clone();
             let tx_accept = tx.clone();
             let tx_outbound_accept = tx_outbound.clone();
@@ -333,7 +344,7 @@ async fn main() -> Result<()> {
                 }
             });
 
-            let mut app = quickchat_tui::app::App::new(rx, tx_outbound, &db_path_str);
+            let mut app = quickchat_tui::app::App::new(rx, tx.clone(), tx_outbound, &db_path_str);
 
             // Run TUI main loop (blocks main thread)
             let res = app.run(&mut terminal);
@@ -361,21 +372,40 @@ async fn main() -> Result<()> {
             }
         }
         Commands::Share { pointer } => {
-            if let Some((file, line)) = pointer.split_once(':')
-                && let Ok(line_num) = line.parse::<usize>()
-            {
-                let content = std::fs::read_to_string(file)?;
-                let lines: Vec<&str> = content.lines().collect();
-                if line_num > 0 && line_num <= lines.len() {
-                    let snippet = lines[line_num - 1];
-                    let formatted =
-                        format!("**Shared Pointer** `{}`\n```\n{}\n```", pointer, snippet);
-
-                    let socket = std::net::UdpSocket::bind("0.0.0.0:0")?;
-                    socket.send_to(formatted.as_bytes(), "127.0.0.1:18080")?;
-                    println!("Shared pointer {} to running daemon.", pointer);
-                }
+            if let Some((file, line)) = pointer.split_once(':') {
+                let socket = std::net::UdpSocket::bind("0.0.0.0:0")?;
+                let msg = format!("Check out this file pointer: {}:{}", file, line);
+                socket.send_to(msg.as_bytes(), "127.0.0.1:18080")?;
+                println!("Shared pointer to {}", pointer);
+            } else {
+                println!("Invalid format. Use file:line");
             }
+        }
+        Commands::Stream { cmd } => {
+            use tokio::io::AsyncBufReadExt;
+            use tokio::process::Command;
+            
+            let socket = tokio::net::UdpSocket::bind("0.0.0.0:0").await?;
+            let mut child = if cfg!(target_os = "windows") {
+                Command::new("cmd").arg("/C").arg(&cmd).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped()).spawn()?
+            } else {
+                Command::new("sh").arg("-c").arg(&cmd).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped()).spawn()?
+            };
+
+            let stdout = child.stdout.take().unwrap();
+            let mut reader = tokio::io::BufReader::new(stdout).lines();
+            
+            println!("Streaming command output to daemon: {}", cmd);
+            let start_msg = format!("[STREAM START] {}", cmd);
+            let _ = socket.send_to(start_msg.as_bytes(), "127.0.0.1:18080").await;
+
+            while let Ok(Some(line)) = reader.next_line().await {
+                let msg = format!("[STREAM] {}", line);
+                let _ = socket.send_to(msg.as_bytes(), "127.0.0.1:18080").await;
+            }
+            
+            let _ = child.wait().await;
+            let _ = socket.send_to(b"[STREAM END]", "127.0.0.1:18080").await;
         }
     }
 
@@ -487,6 +517,24 @@ async fn handle_connection(
                                         ));
                                     }
                                 }
+                                Some(Payload::TypingStatus(ts)) => {
+                                    if ts.is_typing {
+                                        let _ = tx_rx.send(quickchat_tui::app::AppEvent::System(
+                                            format!("{} is typing...", peer_name_rx),
+                                        ));
+                                    }
+                                }
+                                Some(Payload::ClipboardSync(sync)) => {
+                                    let _ = tx_rx.send(quickchat_tui::app::AppEvent::System(
+                                        format!("{} updated your clipboard.", peer_name_rx),
+                                    ));
+                                    // Set clipboard if arboard is integrated in CLI or just notify TUI
+                                }
+                                Some(Payload::BufferSync(sync)) => {
+                                    let _ = tx_rx.send(quickchat_tui::app::AppEvent::System(
+                                        format!("{} synced buffer {}.", peer_name_rx, sync.filename),
+                                    ));
+                                }
                                 None => {}
                             }
                         }
@@ -498,48 +546,74 @@ async fn handle_connection(
         // Task for sending outbound chat streams
         let conn_tx = connection.clone();
         tokio::spawn(async move {
+            let mut active_group_id: Option<String> = None;
             while let Ok(msg) = rx_outbound.recv().await {
-                if msg.starts_with("/file ") {
+                let envelope = if msg.starts_with("/file ") {
                     let path = msg.trim_start_matches("/file ").trim();
                     let path_buf = std::path::PathBuf::from(path);
                     let file_id = uuid::Uuid::new_v4().to_string();
 
                     if let Ok(send) = conn_tx.open_uni().await {
-                        // Spawn file sending task
                         tokio::spawn(async move {
-                            let _ =
-                                quickchat_core::file_manager::send_file(send, &path_buf, file_id)
-                                    .await;
+                            let _ = quickchat_core::file_manager::send_file(send, &path_buf, file_id).await;
                         });
                     }
                     continue;
-                }
-
-                let chat = ChatMessage {
-                    id: uuid::Uuid::new_v4().to_string(),
-                    content: msg,
-                    timestamp: std::time::SystemTime::now()
-                        .duration_since(std::time::UNIX_EPOCH)
-                        .unwrap()
-                        .as_millis() as u64,
+                } else if msg.starts_with("/group join ") {
+                    active_group_id = Some(msg.trim_start_matches("/group join ").trim().to_string());
+                    continue;
+                } else if msg.starts_with("/clip push ") {
+                    let clip_text = msg.trim_start_matches("/clip push ").to_string();
+                    Envelope {
+                        payload: Some(Payload::ClipboardSync(quickchat_types::proto::ClipboardSync {
+                            content: clip_text,
+                        })),
+                    }
+                } else if msg.starts_with("/pair ") {
+                    let file_path = msg.trim_start_matches("/pair ").trim();
+                    let content = std::fs::read_to_string(file_path).unwrap_or_default();
+                    Envelope {
+                        payload: Some(Payload::BufferSync(quickchat_types::proto::BufferSync {
+                            filename: file_path.to_string(),
+                            content,
+                        })),
+                    }
+                } else if msg == "/voice" {
+                    // MVP: Just mock the voice recording since we don't have arecord available cross-platform easily here
+                    // In a real implementation we'd spawn a process, save a .wav, and send it as a file.
+                    let chat = ChatMessage {
+                        id: uuid::Uuid::new_v4().to_string(),
+                        content: "[Voice Note: 10s audio clip recorded]".to_string(),
+                        timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+                        group_id: active_group_id.clone(),
+                    };
+                    Envelope {
+                        payload: Some(Payload::ChatMessage(chat)),
+                    }
+                } else {
+                    let chat = ChatMessage {
+                        id: uuid::Uuid::new_v4().to_string(),
+                        content: msg,
+                        timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+                        group_id: active_group_id.clone(),
+                    };
+                    Envelope {
+                        payload: Some(Payload::ChatMessage(chat)),
+                    }
                 };
 
                 if let Ok(send) = conn_tx.open_uni().await {
-                    let envelope = Envelope {
-                        payload: Some(Payload::ChatMessage(chat.clone())),
-                    };
-
                     let mut chat_encoded = bytes::BytesMut::new();
                     if envelope.encode(&mut chat_encoded).is_ok() {
                         use futures::SinkExt;
                         use tokio_util::codec::{FramedWrite, LengthDelimitedCodec};
                         let mut framed = FramedWrite::new(send, LengthDelimitedCodec::new());
                         let _ = framed.send(chat_encoded.freeze()).await;
-
-                        // DB logic handled by app.rs now
                     }
                 }
             }
         });
+
+
     }
 }

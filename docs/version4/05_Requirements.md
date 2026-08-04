@@ -14,7 +14,8 @@
 *   **Usability:** Zero mandatory configuration. A user must be able to launch the binary and immediately discover LAN peers.
 *   **Open Source Compliance:** All dependencies must have permissive licenses (MIT, Apache 2.0). No GPL/AGPL dependencies that would restrict integration.
 
-## Deprecated Requirements (From V3/Enterprise)
+## Deprecated Requirements (From V3/Community)
 *   *REMOVED:* License key validation mechanisms.
 *   *REMOVED:* Telemetry and phone-home analytics for billing.
 *   *REMOVED:* Hardcoded restrictions on group chat sizes or plugin installations.
+

@@ -22,6 +22,8 @@ message ChatMessage {
     string content = 2;
     // Unix timestamp of when the message was sent (milliseconds)
     uint64 timestamp = 3;
+    // Optional group routing identifier
+    optional string group_id = 4;
 }
 
 message FileTransferOffer {
@@ -37,10 +39,26 @@ message FileChunk {
     bytes data = 3;
 }
 
+message TypingStatus {
+    bool is_typing = 1;
+}
+
+message ClipboardSync {
+    string content = 1;
+}
+
+message BufferSync {
+    string filename = 1;
+    string content = 2;
+}
+
 message Envelope {
     oneof payload {
         ChatMessage chat_message = 1;
         FileTransferOffer file_offer = 2;
         FileChunk file_chunk = 3;
+        TypingStatus typing_status = 4;
+        ClipboardSync clipboard_sync = 5;
+        BufferSync buffer_sync = 6;
     }
 }

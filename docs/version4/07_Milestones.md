@@ -1,7 +1,7 @@
 # QuickChat V4: Milestones
 
 ## Milestone 1: V4 Alpha (Month 1)
-*   **Deliverable:** A stripped-down, fully functional P2P core compiled as a single Rust binary without any legacy Enterprise code.
+*   **Deliverable:** A stripped-down, fully functional P2P core compiled as a single Rust binary without any legacy Community code.
 *   **Success Metric:** Successful E2EE message exchange and file transfer between two instances on different NATs without a central server.
 
 ## Milestone 2: Relay & Identity Release (Month 2)
@@ -15,3 +15,4 @@
 ## Milestone 4: V4 Stable Release (Month 4)
 *   **Deliverable:** Full public launch of QuickChat V4.
 *   **Success Metric:** 10,000 active instances on the DHT network; 100+ community-submitted plugins; widespread adoption by developer teams seeking a free, secure alternative to Slack/Discord.
+

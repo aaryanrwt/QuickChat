@@ -4,7 +4,7 @@ use std::error::Error;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    println!("Starting QuickChat Community Relay Node (V4)...");
+    println!("Starting QuickChat Community Relay Node (V5)...");
 
     // Initialize the DHT Node for the relay (with relay behavior enabled)
     let mut dht_node = DhtNode::new()?;

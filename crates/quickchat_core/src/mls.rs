@@ -1,12 +1,12 @@
-//! Messaging Layer Security (MLS) integration for QuickChat V3
+//! Messaging Layer Security (MLS) integration for QuickChat V5
 //!
 //! This module provides a robust, production-grade abstraction over `openmls`
-//! for managing E2EE persistent group chats.
+//! for managing E2EE persistent group chats in a decentralized network.
 
 use openmls::prelude::*;
 use std::error::Error;
 
-// We use the standard MLS ciphersuite required by V3 Architecture
+// We use the standard MLS ciphersuite required by V5 Architecture for Perfect Forward Secrecy
 #[allow(dead_code)]
 const CIPHERSUITE: Ciphersuite = Ciphersuite::MLS_128_DHKEMX25519_CHACHA20POLY1305_SHA256_Ed25519;
 
@@ -85,7 +85,7 @@ mod tests {
     #[test]
     fn test_mls_encryption_roundtrip() {
         let mut engine = GroupCryptoEngine::new(b"test_group").unwrap();
-        let plaintext = b"Hello V3";
+        let plaintext = b"Hello V5";
         let ciphertext = engine.encrypt_message(plaintext).unwrap();
         let decrypted = engine.decrypt_message(&ciphertext).unwrap();
         assert_eq!(plaintext.to_vec(), decrypted);

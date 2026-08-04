@@ -5,7 +5,7 @@
 The Independent Review Board mapped the V3 engineering milestones defined in the internal `private/Research/QuickChat_ Development Roadmap (V1 → V5).md` to the current `main` branch codebase.
 
 ### Scope Adjustment Context
-*Note: All Enterprise Edition features (SSO, Active Directory, LDAP, Audit Logging, Commercial SLAs) were officially deferred to V4 by product leadership. They have been removed from this matrix.*
+*Note: All Community Edition features (SSO, Active Directory, LDAP, Audit Logging, Open Source SLAs) were officially deferred to V4 by product leadership. They have been removed from this matrix.*
 
 | Requirement | Source Document | Status | Location (Crate/Module) | Notes |
 |---|---|---|---|---|
@@ -20,3 +20,4 @@ The Independent Review Board mapped the V3 engineering milestones defined in the
 Every V3 Open Source requirement identified in the Research documentation has been strictly translated into code and verified in the current build.
 
 **Status: 100% Traceable**
+

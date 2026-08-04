@@ -13,7 +13,7 @@ The vision for QuickChat V2 is to transition from a **standalone tool** to an **
 | **Extensibility** | Closed system; all features compiled into the core binary. | Open ecosystem via WASM plugins (e.g., GitHub, Docker integrations). | **High**: Requires implementing a WASM host, SDK, shared memory models, and sandboxing. |
 | **Discovery** | mDNS (LAN) and STUN with out-of-band key exchange (WAN). | Distributed Hash Table (DHT) for global discovery, plus optional Relay Servers. | **High**: Integration of DHT protocols and robust NAT traversal/TURN-like relays. |
 | **Collaboration** | Basic text, file transfers, and static code pointer sharing. | Interactive live code pointers (editor bridging), shared terminal sessions. | **Medium**: Protocol extensions for editor IPC and TTY stream multiplexing. |
-| **Team/Enterprise** | 1-to-1 P2P messaging. | Persistent group chats, SSO (SAML/OIDC), audit logging, and LDAP sync. | **High**: Requires shifting to a hybrid architecture (Open Core) with persistent data availability. |
+| **Team/Community** | 1-to-1 P2P messaging. | Persistent group chats, SSO (SAML/OIDC), audit logging, and LDAP sync. | **High**: Requires shifting to a hybrid architecture (Open Core) with persistent data availability. |
 | **UI/UX** | Hardcoded default themes, basic terminal rendering. | Dynamic theming engine, rich media support (Sixel/Kitty), plugin UI rendering. | **Medium**: Abstracting Ratatui components to support dynamic injection from WASM plugins. |
 
 ## 3. Key Architectural Challenges for V2
@@ -33,3 +33,4 @@ V2's "Persistent Group Chats" conflict with pure ephemeral P2P. If all peers in 
 
 ## 4. Next Steps
 The following documents in this suite outline the technical specifications and engineering roadmap to bridge these gaps, beginning with the core architectural redesign in `02_Architecture_Plan.md`.
+

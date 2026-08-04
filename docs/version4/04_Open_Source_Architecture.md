@@ -22,4 +22,5 @@ QuickChat V4 is architected as a decentralized, peer-to-peer system built entire
 *   **WASM Sandbox:** Plugins run in a secure WebAssembly environment. They communicate with the Application Core via a well-defined RPC protocol, ensuring plugins cannot crash the main application or access unauthorized data.
 
 ## Open Source Shift
-Previously closed modules (e.g., the Enterprise relay and proprietary SSO connectors) have been entirely removed and replaced with open-standard, community-maintainable Rust crates.
+Previously closed modules (e.g., the Community Relay and proprietary SSO connectors) have been entirely removed and replaced with open-standard, community-maintainable Rust crates.
+

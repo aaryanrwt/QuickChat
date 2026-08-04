@@ -1,0 +1,2 @@
+# Executive Summary
+Version 5 architecture emphasizes a 100% open-source, community-first approach. All enterprise features have been stripped or converted to free features. The focus is on offline-first capabilities, privacy, and local AI.

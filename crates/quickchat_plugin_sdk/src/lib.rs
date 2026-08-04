@@ -7,6 +7,7 @@ pub trait QuickChatPlugin {
     fn initialize(&mut self) {}
     fn on_message_received(&mut self, _message: ChatMessage) {}
     fn on_command(&mut self, _command: &str, _args: &[&str]) {}
+    fn on_ai_response(&mut self, _response: &str) {}
 }
 
 /// Macro to generate the necessary FFI bindings and export the plugin implementation.
@@ -36,6 +37,20 @@ macro_rules! export_plugin {
                 // let message = deserialize(ptr, len);
                 if let Some(ref mut plugin) = PLUGIN {
                     // plugin.on_message_received(message);
+                }
+            }
+        }
+
+        /// # Safety
+        /// The provided pointer must be valid and point to allocated memory of the given length.
+        #[no_mangle]
+        pub unsafe extern "C" fn _on_ai_response(ptr: *mut u8, len: usize) {
+            unsafe {
+                let slice = std::slice::from_raw_parts(ptr, len);
+                if let Ok(response) = std::str::from_utf8(slice) {
+                    if let Some(ref mut plugin) = PLUGIN {
+                        plugin.on_ai_response(response);
+                    }
                 }
             }
         }

@@ -26,7 +26,7 @@ QuickChat must introduce an optional Relay architecture.
 - **Protocol:** A custom, lightweight UDP relay protocol operating over QUIC (or standard TURN).
 - **Operation:** If direct P2P fails, both peers connect to a QuickChat Managed Relay Server. The server blindly forwards encrypted QUIC packets between the two peers.
 - **Security:** The relay server *cannot* decrypt the traffic because the Noise XX handshake provides End-to-End Encryption (E2EE). The relay only sees opaque encrypted streams.
-- **Enterprise Alignment:** The Managed Relay service forms a core component of the Enterprise monetization strategy (SLA-backed, high-bandwidth relays).
+- **Community Alignment:** The Managed Relay service forms a core component of the Community monetization strategy (SLA-backed, high-bandwidth relays).
 
 ## 4. Asynchronous Messaging (Offline Delivery)
 
@@ -44,4 +44,5 @@ In pure P2P, if User B is offline, User A cannot send them a message.
 
 Group chats in V2 require a hybrid consensus model.
 - **Small Groups:** Full mesh networking (every peer connects to every other peer). Highly secure but doesn't scale well past ~10 users.
-- **Large/Enterprise Groups:** A designated "Group Server" (which can be a user's machine acting as a host, or an Enterprise deployment) handles distributing messages to the group, acting as a pub-sub broker. All messages remain E2EE using a group ratcheting protocol (e.g., Sender Keys/Signal Protocol).
+- **Large/Community Groups:** A designated "Group Server" (which can be a user's machine acting as a host, or an Community deployment) handles distributing messages to the group, acting as a pub-sub broker. All messages remain E2EE using a group ratcheting protocol (e.g., Sender Keys/Signal Protocol).
+

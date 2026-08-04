@@ -7,7 +7,7 @@ The vision for QuickChat V3 is to become the definitive open-source communicatio
 ## Core Pillars for V3
 
 ### 1. Pure Open-Source Ecosystem
-We reject the notion of an "Enterprise Edition". Every feature, from relay servers to role-based access control in group chats, will be 100% open source and self-hostable. 
+We reject the notion of an "Community Edition". Every feature, from relay servers to role-based access control in group chats, will be 100% open source and self-hostable. 
 
 ### 2. Decentralized Persistence
 V1 and V2 were ephemeral. V3 will introduce **Persistent Group Chats** using a hybrid DHT (Distributed Hash Table) and opt-in open-source relay servers. This ensures teams can maintain asynchronous communication without relying on a central corporate server.
@@ -20,3 +20,4 @@ QuickChat V3 will natively integrate with the developer's environment:
 
 ### 4. Zero-Config Global Discovery
 V2 relied on mDNS (LAN) and basic STUN. V3 will fully implement a secure DHT network, allowing developers across the globe to discover and connect with peers using only a public key, completely abstracting away NAT traversal complexity.
+

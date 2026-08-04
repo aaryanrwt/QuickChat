@@ -34,8 +34,8 @@ To manage complexity, V2 development should be phased iteratively.
 3. **Theming Engine:** Implement the dynamic TOML-based theming engine in Ratatui.
 4. **Kitty Graphics Integration:** Add support for inline image rendering.
 
-### Phase 4: Enterprise & Launch (Months 10-12)
-1. **Enterprise Identity Bridge:** Build the SSO/SAML integration components.
+### Phase 4: Community & Launch (Months 10-12)
+1. **Self-hosted Identity Bridge:** Build the SSO/SAML integration components.
 2. **Audit Logging Framework:** Implement tamper-evident local logging.
 3. **Plugin Marketplace Launch:** Launch a public registry for community WASM plugins.
 4. **V2 Public Release:** Execute the GitHub Growth Strategy marketing push.
@@ -43,3 +43,4 @@ To manage complexity, V2 development should be phased iteratively.
 ## 4. Conclusion
 
 QuickChat V2 has a clear path to becoming the dominant communication layer for developers. By executing this roadmap with an uncompromising focus on code quality, security, and developer UX, the project will successfully bridge the gap between a beloved open-source tool and a sustainable enterprise platform.
+

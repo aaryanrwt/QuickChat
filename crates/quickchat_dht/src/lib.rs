@@ -18,6 +18,7 @@ impl DhtNode {
         let local_peer_id = libp2p::PeerId::from(local_key.public());
 
         let mut cfg = kad::Config::default();
+        // TODO (V5): Isolate network with cfg.set_protocol_names(vec![StreamProtocol::new("/quickchat/kad/5.0.0")]);
         cfg.set_query_timeout(Duration::from_secs(5 * 60));
         let store = kad::store::MemoryStore::new(local_peer_id);
         let kademlia = kad::Behaviour::with_config(local_peer_id, store, cfg);

@@ -14,8 +14,9 @@ V2 introduced the WASM Plugin SDK, allowing the community to build integrations 
 
 ## Analysis of "Private Research" vs Open Source Philosophy
 The private research archive proposed several V3 initiatives, including:
-1. Enterprise Edition (SSO, SAML, Billing)
+1. Community Edition (SSO, SAML, Billing)
 2. Decentralized Identity and DHT
 3. Relay Servers
 
-**Critical Decision:** All Enterprise/Commercial initiatives (SSO, SAML, proprietary relay models) are explicitly **REJECTED**. QuickChat V3 will strictly adhere to the Open Source philosophy. We will double down on DHT, open-source relay software for self-hosting, and advanced developer workflow integrations.
+**Critical Decision:** All Community/Open Source initiatives (SSO, SAML, proprietary relay models) are explicitly **REJECTED**. QuickChat V3 will strictly adhere to the Open Source philosophy. We will double down on DHT, open-source relay software for self-hosting, and advanced developer workflow integrations.
+

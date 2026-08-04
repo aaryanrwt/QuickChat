@@ -9,6 +9,7 @@ pub enum AppEvent {
     Message(String),
     System(String),
     PluginOutput(String),
+    AiResponse(String),
 }
 
 pub enum ActivePane {
@@ -22,6 +23,7 @@ pub struct App {
     pub messages: Vec<String>,
     pub should_quit: bool,
     pub rx: std::sync::mpsc::Receiver<AppEvent>,
+    pub tx: std::sync::mpsc::Sender<AppEvent>,
     pub tx_outbound: tokio::sync::broadcast::Sender<String>,
 
     pub contacts: Vec<Contact>,
@@ -39,6 +41,7 @@ pub struct App {
 impl App {
     pub fn new(
         rx: std::sync::mpsc::Receiver<AppEvent>,
+        tx: std::sync::mpsc::Sender<AppEvent>,
         tx_outbound: tokio::sync::broadcast::Sender<String>,
         chat_db_path: &str,
     ) -> Self {
@@ -64,6 +67,7 @@ impl App {
             messages: Vec::new(),
             should_quit: false,
             rx,
+            tx,
             tx_outbound,
             contacts,
             active_contact: active,
@@ -106,6 +110,7 @@ impl App {
                     }
                     AppEvent::System(s) => self.messages.push(format!("[SYSTEM] {}", s)),
                     AppEvent::PluginOutput(p) => self.plugin_outputs.push(p),
+                    AppEvent::AiResponse(r) => self.messages.push(format!("[AI] {}", r)),
                 }
             }
 
@@ -115,6 +120,18 @@ impl App {
                 && let Event::Key(key) = event::read()?
                 && key.kind == KeyEventKind::Press
             {
+                if key.modifiers.contains(crossterm::event::KeyModifiers::CONTROL) && key.code == KeyCode::Char('o') {
+                    if let Some(msg) = self.messages.last() {
+                        let re = regex::Regex::new(r"([a-zA-Z0-9_/\.\-]+\.[a-z]+:\d+)").unwrap();
+                        if let Some(mat) = re.find(msg) {
+                            let path_line = mat.as_str();
+                            let _ = std::process::Command::new("code").arg("--goto").arg(path_line).spawn();
+                            self.messages.push(format!("[SYSTEM] Launched editor for: {}", path_line));
+                        }
+                    }
+                    continue;
+                }
+
                 match key.code {
                     KeyCode::Esc => self.should_quit = true,
                     KeyCode::Up => {
@@ -153,7 +170,47 @@ impl App {
                     }
                     KeyCode::Enter => {
                         let msg = self.input.value().to_string();
-                        if !msg.is_empty() {
+                        if msg.starts_with("/ai ") {
+                            let prompt = msg.trim_start_matches("/ai ").trim().to_string();
+                            let tx_ai = self.tx.clone();
+                            self.messages.push(format!("You: /ai {}", prompt));
+                            self.messages.push(format!("[SYSTEM] Querying Offline AI for: {}...", prompt));
+                            
+                            tokio::spawn(async move {
+                                let ai_client = quickchat_core::ai::LocalLlmClient::new("http://localhost:11434");
+                                if let Ok(resp) = ai_client.analyze_code("", &prompt).await {
+                                    let _ = tx_ai.send(AppEvent::AiResponse(resp));
+                                } else {
+                                    let _ = tx_ai.send(AppEvent::System("Offline AI Error: Could not connect to daemon.".to_string()));
+                                }
+                            });
+                            
+                            self.input.reset();
+                        } else if msg.starts_with("/clip push") {
+                            if let Ok(mut ctx) = arboard::Clipboard::new() {
+                                if let Ok(text) = ctx.get_text() {
+                                    self.messages.push(format!("You pushed clipboard: {}", text));
+                                    // Normally we would send this over tx_outbound or format it in a specific way
+                                    // For now, send as a command message for the CLI to parse and send as Payload::ClipboardSync
+                                    let _ = self.tx_outbound.send(format!("/clip push {}", text));
+                                }
+                            }
+                            self.input.reset();
+                        } else if msg.starts_with("/group join ") {
+                            let group_name = msg.trim_start_matches("/group join ").trim();
+                            self.messages.push(format!("[SYSTEM] Joined group: {}", group_name));
+                            let _ = self.tx_outbound.send(format!("/group join {}", group_name));
+                            self.input.reset();
+                        } else if msg.starts_with("/pair ") {
+                            let file_name = msg.trim_start_matches("/pair ").trim();
+                            self.messages.push(format!("[SYSTEM] Pair programming on: {}", file_name));
+                            let _ = self.tx_outbound.send(format!("/pair {}", file_name));
+                            self.input.reset();
+                        } else if msg.starts_with("/voice") {
+                            self.messages.push("[SYSTEM] Recording voice note (10s)...".to_string());
+                            let _ = self.tx_outbound.send("/voice".to_string());
+                            self.input.reset();
+                        } else if !msg.is_empty() {
                             self.messages.push(format!("You: {}", msg));
 
                             // Persist outgoing message

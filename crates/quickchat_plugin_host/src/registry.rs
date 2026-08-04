@@ -1,8 +1,8 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use std::path::PathBuf;
+use std::process::Command;
 
-/// An open-source, decentralized plugin registry designed to replace the
-/// deprecated Enterprise paid plugin marketplace.
+/// An open-source, decentralized plugin registry.
 pub struct DecentralizedRegistry {
     pub base_url: String,
 }
@@ -14,19 +14,32 @@ impl DecentralizedRegistry {
         }
     }
 
-    /// Fetches a community plugin from the open registry.
+    /// Fetches a community plugin from the open registry using Git.
     pub async fn download_plugin(
         &self,
         plugin_id: &str,
         out_dir: &std::path::Path,
     ) -> Result<PathBuf> {
-        let file_path = out_dir.join(format!("{}.wasm", plugin_id));
+        let plugin_repo = format!("{}/{}", self.base_url, plugin_id);
+        let target_dir = out_dir.join(plugin_id);
+
         println!(
-            "Downloading plugin {} from decentralized registry {}...",
-            plugin_id, self.base_url
+            "Cloning plugin {} from decentralized git registry {}...",
+            plugin_id, plugin_repo
         );
-        // Stub for HTTP download using reqwest
-        std::fs::write(&file_path, b"mock wasm content")?;
+
+        let status = Command::new("git")
+            .arg("clone")
+            .arg(&plugin_repo)
+            .arg(&target_dir)
+            .status()
+            .context("Failed to execute git clone")?;
+
+        if !status.success() {
+            anyhow::bail!("Failed to clone plugin repository: {}", plugin_id);
+        }
+
+        let file_path = target_dir.join(format!("{}.wasm", plugin_id));
         Ok(file_path)
     }
 }
